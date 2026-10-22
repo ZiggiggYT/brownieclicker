@@ -75,7 +75,7 @@ check(s.customers.every(c => c.y >= 150 && c.y <= 180), 'customers stay on the f
 // Delivery bikes sell from the tray while open.
 s = BB.newState(14); s.helpers.bike = 2; s.fresh = 1000;
 const sold0 = s.totalSold; s = BB.simN(s, 100);
-check(s.totalSold - sold0 >= 20, 'two bikes deliver ~2 a second (' + (s.totalSold - sold0) + ' in 10 s)');
+check(s.totalSold - sold0 >= 9 && s.totalSold - sold0 <= 14, 'two bikes deliver ~1 a second (' + (s.totalSold - sold0) + ' in 10 s)');
 
 // Old v1 saves load and keep their progress.
 const v1 = { v: 1, seed: 5, t: 9000, coins: 1234, fresh: 40, stale: 3, bakeAcc: 0.5, totalBaked: 3000, totalSold: 2500,
