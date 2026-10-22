@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=1.1.0">
 </head>
 
 <body>
@@ -39,6 +39,7 @@
         <div id="dayCard" class="px-panel" hidden>
           <div class="big" id="dayTitle">DAY 1 DONE!</div>
           <p id="dayText">You sold 0 brownies and earned $0</p>
+          <p class="extra" id="dayExtra"></p>
           <p class="sub" id="dayCount">Next day in 8...</p>
           <button class="btn" id="startNow">START NOW</button>
         </div>
@@ -69,10 +70,13 @@
       <aside id="shop" class="px-panel">
         <nav id="tabs">
           <button class="tab active" data-tab="helpers">HELPERS</button>
+          <button class="tab" data-tab="customers">CUSTOMERS</button>
           <button class="tab" data-tab="recipes">RECIPES</button>
           <button class="tab" data-tab="fixes">FIX UP</button>
         </nav>
+        <p id="hint" hidden>Your tray is overflowing! More bakers won't help now. Get more customers or Delivery Bikes.</p>
         <div id="rows"></div>
+        <p id="stats"></p>
       </aside>
     </div>
 
@@ -107,14 +111,15 @@
     <div id="loading">LOADING...</div>
   </div>
 
-  <script src="js/atlas.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/sim.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/intro.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/version.js?v=1.1.0"></script>
+  <script src="js/atlas.js?v=1.1.0"></script>
+  <script src="js/data.js?v=1.1.0"></script>
+  <script src="js/sim.js?v=1.1.0"></script>
+  <script src="js/audio.js?v=1.1.0"></script>
+  <script src="js/render.js?v=1.1.0"></script>
+  <script src="js/ui.js?v=1.1.0"></script>
+  <script src="js/intro.js?v=1.1.0"></script>
+  <script src="js/main.js?v=1.1.0"></script>
 </body>
 
 </html>

@@ -12,6 +12,8 @@
   const last = {};
   const bannerQueue = [];
   let bannerBusy = false;
+  let frameNo = 0;
+  const rate = n => (n >= 100 ? BB.fmt(n) : String(Math.round(n * 10) / 10));
 
   // A canvas showing one sprite at an integer scale. crop = rows to keep from the top.
   function sprite(name, scale, crop) {
@@ -54,29 +56,62 @@
     return '<span class="ico" data-sprite="coin" data-scale="2"></span>' + BB.fmt(n);
   }
 
-  function describeRows(s) {
-    if (tab === 'helpers') {
-      return D.helpers.map(h => {
+  // Rows for one tab. cls '' means "you can buy this right now".
+  function describeRows(s, which) {
+    if (which === 'helpers') {
+      const rows = [];
+      D.helpers.forEach(h => {
         const n = s.helpers[h.id];
         const owned = !h.repeat && n > 0;
         const price = BB.helperPrice(s, h);
-        return {
+        const ups = h.upgrades || [];
+        rows.push({
           key: 'helper:' + h.id, icon: h.icon, name: h.name, line: h.line,
           count: h.repeat && n ? 'x' + n : '',
           price: owned ? 'HIRED' : priceHTML(price),
           cls: owned ? 'owned' : s.coins < price ? 'dim' : '',
-        };
+          badges: ups.filter(u => s.ups[u.id]).map(u => u.icon),
+        });
+        if (!n) return; // upgrades appear once you own the worker
+        let teaser = false;
+        ups.forEach(u => {
+          if (s.ups[u.id]) return;
+          const block = BB.upgradeBlock(s, u.id);
+          if (block === 'needs') {
+            if (teaser) return; // only tease the next locked one
+            teaser = true;
+            rows.push({ key: 'up:' + u.id, icon: u.icon, name: u.name, line: u.line, count: '', sub: true,
+              price: h.unit ? 'NEEDS ' + u.needs + ' ' + h.unit : 'NEEDS ' + h.name.toUpperCase() + ' x' + u.needs,
+              cls: 'dim locked' });
+            return;
+          }
+          rows.push({ key: 'up:' + u.id, icon: u.icon, name: u.name, line: u.line, count: '', sub: true,
+            price: priceHTML(u.price), cls: block === 'coins' ? 'dim' : '' });
+        });
       });
+      return rows;
     }
-    if (tab === 'fixes') {
-      return D.fixes.map(f => {
+    // Finished one-time buys sink to the bottom so new things are easy to find.
+    const doneLast = rows => rows.filter(r => r.cls !== 'owned').concat(rows.filter(r => r.cls === 'owned'));
+    if (which === 'customers') {
+      return doneLast(D.customerUps.filter(u => !u.after || s.cust[u.after]).map(u => {
+        const owned = s.cust[u.id];
+        return {
+          key: 'cust:' + u.id, icon: u.icon, name: u.name, line: u.line, count: '',
+          price: owned ? 'DONE' : priceHTML(u.price),
+          cls: owned ? 'owned' : s.coins < u.price ? 'dim' : '',
+        };
+      }));
+    }
+    if (which === 'fixes') {
+      return doneLast(D.fixes.map(f => {
         const owned = s.fix[f.id];
         return {
           key: 'fix:' + f.id, icon: f.icon, name: f.name, line: f.line, count: '',
           price: owned ? 'DONE' : priceHTML(f.price),
           cls: owned ? 'owned' : s.coins < f.price ? 'dim' : '',
         };
-      });
+      }));
     }
     return D.recipes.map(r => {
       const have = !!s.recipes[r.id];
@@ -101,17 +136,19 @@
     });
   }
 
-  function buildRows(s) {
+  let rowKeys = '';
+
+  function buildRows(s, rows) {
     const box = $('rows');
     box.textContent = '';
     rowCache = {};
-    describeRows(s).forEach(d => {
+    rows.forEach(d => {
       const b = document.createElement('button');
       b.className = 'row';
-      b.innerHTML = '<span class="icon"></span><span class="name"><span></span><span class="count"></span></span><span class="line"></span><span class="price"></span>';
+      b.innerHTML = '<span class="icon"></span><span class="name"><span></span><span class="count"></span></span><span class="line"></span><span class="price"><span class="cost"></span><span class="badges"></span></span>';
       const f = A[d.icon];
       const person = f && f.h === 32;
-      b.querySelector('.icon').appendChild(sprite(d.icon, 3, person ? 21 : 0));
+      b.querySelector('.icon').appendChild(sprite(d.icon, d.sub ? 2 : 3, person ? 21 : 0));
       b.addEventListener('click', () => {
         const [kind, id] = d.key.split(':');
         handlers.buy(kind, id);
@@ -119,24 +156,41 @@
       box.appendChild(b);
       rowCache[d.key] = { el: b, sig: '' };
     });
-    updateRows(s);
   }
 
   function updateRows(s) {
-    describeRows(s).forEach(d => {
+    const rows = describeRows(s, tab);
+    const keys = rows.map(d => d.key).join(',');
+    if (keys !== rowKeys) { // a new upgrade showed up (or went away): rebuild the list
+      rowKeys = keys;
+      buildRows(s, rows);
+    }
+    rows.forEach(d => {
       const r = rowCache[d.key];
       if (!r) return;
-      const sig = [d.name, d.line, d.count, d.price, d.cls].join('|');
+      const badges = (d.badges || []).join(',');
+      const sig = [d.name, d.line, d.count, d.price, d.cls, badges].join('|');
       if (sig === r.sig) return;
       r.sig = sig;
       const el = r.el;
-      el.className = 'row ' + d.cls;
+      el.className = 'row ' + (d.sub ? 'sub ' : '') + d.cls;
       el.querySelector('.name span').textContent = d.name;
       el.querySelector('.count').textContent = d.count;
       el.querySelector('.line').textContent = d.line;
-      const p = el.querySelector('.price');
+      const p = el.querySelector('.cost');
       p.innerHTML = d.price;
       fillIcons(p);
+      const bx = el.querySelector('.badges');
+      bx.textContent = '';
+      (d.badges || []).forEach(name => bx.appendChild(sprite(name, 2)));
+    });
+  }
+
+  // A dot on each tab that has something you can buy right now.
+  function updateTabDots(s) {
+    document.querySelectorAll('.tab').forEach(t => {
+      const can = describeRows(s, t.dataset.tab).some(d => d.cls === '');
+      t.classList.toggle('dot', can);
     });
   }
 
@@ -194,7 +248,9 @@
       document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
         tab = t.dataset.tab;
         document.querySelectorAll('.tab').forEach(o => o.classList.toggle('active', o === t));
-        buildRows(h.state());
+        rowKeys = '';
+        $('rows').scrollTop = 0;
+        updateRows(h.state());
         BB.audio.play('click');
       }));
       $('giveBtn').addEventListener('click', () => h.give());
@@ -206,15 +262,25 @@
     reset() {
       Object.keys(last).forEach(k => delete last[k]);
       rowCache = {};
+      rowKeys = '';
     },
 
     update(s) {
-      if (!rowCache[Object.keys(rowCache)[0]]) buildRows(s);
       setText($('clock'), 'clock', clockText(s));
       setText($('coins'), 'coins', BB.fmt(s.coins));
       drawStars(s);
       drawSunMoon(s);
       updateRows(s);
+      if (++frameNo % 15 === 0) updateTabDots(s);
+
+      // tray overflowing hint, and what the bakery is doing
+      const over = BB.overflowing(s);
+      if (last.over !== over) { last.over = over; $('hint').hidden = !over; }
+      const visits = BB.visits(s) * (BB.lunchRush(s) ? 3 : 1);
+      const parts = ['BAKING ' + rate(BB.bakeRate(s)) + '/s'];
+      if (BB.deliverRate(s)) parts.push('DELIVERING ' + rate(BB.deliverRate(s)) + '/s');
+      if (visits > 1) parts.push('VISITS x' + (Math.round(visits * 10) / 10));
+      setText($('stats'), 'stats', parts.join('  ·  '));
 
       // goal
       const g = BB.currentGoal(s);
@@ -260,6 +326,8 @@
       $('dayCard').hidden = s.open;
       if (!s.open && s.lastDay) {
         setText($('dayTitle'), 'dayTitle', 'DAY ' + s.lastDay.day + ' DONE!');
+        const ld = s.lastDay;
+        setText($('dayExtra'), 'dayExtra', (ld.record ? 'NEW RECORD DAY! ' : '') + (ld.tips ? ld.tips + (ld.tips === 1 ? ' tip' : ' tips') + ' in the jar' : ''));
         setText($('dayText'), 'dayText', 'You sold ' + BB.fmt(s.lastDay.sold) + (s.lastDay.sold === 1 ? ' brownie' : ' brownies') + ' and earned $' + BB.fmt(s.lastDay.earned));
         setText($('dayCount'), 'dayCount', 'Next day starts in ' + Math.max(1, Math.ceil(s.nightT / 10)) + '...');
       }
@@ -292,6 +360,12 @@
           break;
         case 'bonus':
           this.banner('GOLDEN BONUS! +$' + BB.fmt(e.amt), '', true);
+          break;
+        case 'lunch':
+          this.banner('LUNCH RUSH!', 'pink');
+          break;
+        case 'parade':
+          this.banner('CUSTOMER PARADE!', '', true);
           break;
         case 'orderNew':
           this.banner('NEW SPECIAL ORDER!', 'pink');

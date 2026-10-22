@@ -5,7 +5,7 @@ const path = require('path');
 const ctx = { window: {}, console, JSON, Math, Date };
 ctx.window = ctx;
 vm.createContext(ctx);
-for (const f of ['js/data.js', 'js/sim.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), ctx);
+for (const f of ['js/version.js', 'js/data.js', 'js/sim.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), ctx);
 const BB = ctx.BB;
 let fails = 0;
 const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ') + msg); if (!ok) fails++; };
@@ -30,7 +30,7 @@ const before = s.totalEarned;
 s = BB.simN(s, 36000);
 check(s.totalEarned - before > 500, 'helpers keep the bakery earning (+$' + (s.totalEarned - before) + ')');
 check(s.fresh >= 0 && s.stale >= 0, 'stock never negative');
-check(s.goal > 0, 'goals complete on their own (goal ' + s.goal + ')');
+check(Object.keys(s.goalsDone).length > 0, 'goals complete on their own (' + Object.keys(s.goalsDone).length + ' done)');
 
 // Buying and orders.
 s = BB.newState(3); s.coins = 100;
@@ -49,7 +49,56 @@ check(!s.open && s.fresh === 0 && s.stale >= 40, 'closing turns fresh stale');
 s = BB.simN(s, BB.DATA.NIGHT_TICKS + 1);
 check(s.open && s.day === 2, 'next day starts by itself');
 
+// Worker upgrades multiply their worker.
+s = BB.newState(11); s.coins = 1e6; s.helpers.dave = 2;
+const r0 = BB.bakeRate(s);
+check(BB.act.buyUpgrade(s, 'whisk') && BB.bakeRate(s) === r0 + 2, 'Better Whisk doubles Dave');
+check(!BB.act.buyUpgrade(s, 'shoes') && BB.upgradeBlock(s, 'shoes') === 'needs', 'Speed Shoes needs 3 Daves');
+check(!BB.act.buyUpgrade(s, 'fire'), 'oven upgrades need an oven first');
+s.helpers.nap = 1; BB.act.buyUpgrade(s, 'mitts');
+check(BB.perClick(s) === 4, 'Oven Mitts double clicks');
+
+// Customer upgrades.
+s = BB.newState(12); s.coins = 1e6;
+check(BB.queueSize(s) === 3 && !BB.act.buyCust(s, 'line2'), 'Even Bigger Line needs Bigger Line first');
+BB.act.buyCust(s, 'line1'); BB.act.buyCust(s, 'line2');
+check(BB.queueSize(s) === 5, 'line upgrades make room for 5');
+const sp = BB.spawnChance(s); BB.act.buyCust(s, 'window');
+check(Math.abs(BB.spawnChance(s) / sp - 1.25) < 1e-9, 'Window Display brings 25% more customers');
+s.dayT = Math.round(BB.DATA.DAY_TICKS * 0.3); BB.act.buyCust(s, 'rush');
+check(BB.lunchRush(s), 'Rush Hour is on at lunch');
+s = BB.newState(13); s.coins = 1e6; s.fresh = 5000; BB.act.buyCust(s, 'tipjar'); BB.act.buyCust(s, 'samples');
+s = BB.simN(s, 6000);
+check(s.dayTips > 0 || (s.lastDay && s.lastDay.tips > 0), 'tip jar collects tips');
+check(s.customers.every(c => c.y >= 150 && c.y <= 180), 'customers stay on the floor');
+
+// Delivery bikes sell from the tray while open.
+s = BB.newState(14); s.helpers.bike = 2; s.fresh = 1000;
+const sold0 = s.totalSold; s = BB.simN(s, 100);
+check(s.totalSold - sold0 >= 9 && s.totalSold - sold0 <= 14, 'two bikes deliver ~1 a second (' + (s.totalSold - sold0) + ' in 10 s)');
+
+// Old v1 saves load and keep their progress.
+const v1 = { v: 1, seed: 5, t: 9000, coins: 1234, fresh: 40, stale: 3, bakeAcc: 0.5, totalBaked: 3000, totalSold: 2500,
+  totalEarned: 4000, clicks: 300, stars: 2.2, helpers: { nap: 3, coffee: 4, dave: 2, linda: 1, oven: 0 },
+  fix: { sweep: true, sign: true, case: false, paint: false, tables: false }, recipes: { classic: true, blondie: true },
+  recipe: 'blondie', day: 6, dayT: 400, open: true, nightT: 0, daySold: 30, dayEarned: 60, lastDay: null, staleT: 10,
+  customers: [{ id: 9, look: 'mo', x: 218, st: 'wait', t: 0, want: 2, mood: null }], cid: 9, order: null, orderIdx: 3,
+  orderCd: 100, golden: null, goldenCd: 300, rush: 0, goal: 13, flags: { pet: true, golden: true }, fx: [] };
+const m = BB.migrate(JSON.parse(JSON.stringify(v1)));
+check(m.v === 2 && m.coins === 1234 && m.helpers.dave === 2 && m.helpers.bike === 0 && m.recipe === 'blondie', 'v1 save keeps coins, helpers and recipe');
+check(m.goalsDone.mint === undefined && m.goalsDone.star2 && m.goalsDone.linda && Object.keys(m.goalsDone).length === 13, 'v1 goal progress carries over');
+check(m.customers[0].y === 160 && m.goal === undefined, 'v1 customers get a floor position');
+check(BB.simN(m, 3000).coins > 1234, 'migrated save keeps running');
+
 // Speed of a full hour catch-up.
 const t0 = Date.now(); BB.simN(BB.newState(9), 36000);
 check(Date.now() - t0 < 1500, 'one hour of catch-up runs fast (' + (Date.now() - t0) + ' ms)');
+
+// Release version: index.html's ?v= strings must match js/version.js (tools/bump_version.py keeps them in sync).
+const root = path.join(__dirname, '..');
+const version = /BB\.VERSION = '([^']+)'/.exec(fs.readFileSync(path.join(root, 'js/version.js'), 'utf8'))[1];
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const vs = [...html.matchAll(/\?v=([0-9.]+)/g)].map(m => m[1]);
+check(vs.length >= 10 && vs.every(v => v === version), 'index.html cache-busting matches version ' + version);
+check(/src="js\/(\w+)\.js"/.test(html) === false && !/href="css\/style\.css"/.test(html), 'every css/js link is versioned');
 process.exit(fails ? 1 : 0);
