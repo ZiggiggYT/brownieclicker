@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=1.2.0">
+  <link rel="stylesheet" href="css/style.css?v=1.2.1">
 </head>
 
 <body>
@@ -52,34 +52,43 @@
         </div>
       </div>
 
-      <section id="bottom">
-        <div class="card px-panel" id="goalCard">
-          <div class="card-head">GOAL</div>
-          <div class="card-body">
-            <p id="goalText">Bake 25 brownies</p>
-            <div class="bar" id="goalBar"><i></i></div>
-            <p class="reward" id="goalReward">REWARD <span class="ico" data-sprite="coin" data-scale="2"></span> 15</p>
-          </div>
+      <!-- slim strip under the bakery: the current goal, and a button for orders and the Trash Man -->
+      <section id="bottom" class="px-panel">
+        <div id="goalMini">
+          <span class="mini-head">GOAL</span>
+          <p id="goalText">Bake 25 brownies</p>
+          <div class="bar" id="goalBar"><i></i></div>
+          <p class="reward" id="goalReward">REWARD <span class="ico" data-sprite="coin" data-scale="2"></span> 15</p>
         </div>
-        <div class="card px-panel" id="orderCard">
-          <div class="card-head">SPECIAL ORDER</div>
-          <div class="card-body order">
-            <span id="orderWho" class="who"></span>
-            <div class="order-info">
-              <p id="orderText">No orders yet...</p>
-              <div class="bar time" id="orderBar"><i></i></div>
-            </div>
-            <button class="btn" id="giveBtn" disabled>GIVE</button>
-          </div>
-        </div>
-        <div class="card px-panel" id="trashCard">
-          <div class="card-head">TRASH MAN</div>
-          <div class="card-body trash">
-            <p id="trashText">Takes ALL your brownies for 1/10 of the price. Fee: 100 brownies.</p>
-            <button class="btn" id="trashBtn" disabled>DUMP ALL</button>
-          </div>
-        </div>
+        <button class="btn" id="tasksBtn">ORDERS &amp; TRASH MAN<span id="tasksBadge" hidden>!</span></button>
       </section>
+
+      <!-- opened by the button above; the game keeps running underneath -->
+      <div id="tasksPanel" hidden>
+        <div class="tasks-box px-panel">
+          <div class="cards">
+            <div class="card px-panel" id="orderCard">
+              <div class="card-head">SPECIAL ORDER</div>
+              <div class="card-body order">
+                <span id="orderWho" class="who"></span>
+                <div class="order-info">
+                  <p id="orderText">No orders yet...</p>
+                  <div class="bar time" id="orderBar"><i></i></div>
+                  <button class="btn" id="giveBtn" disabled>GIVE</button>
+                </div>
+              </div>
+            </div>
+            <div class="card px-panel" id="trashCard">
+              <div class="card-head">TRASH MAN</div>
+              <div class="card-body trash">
+                <p id="trashText">Takes all your STALE brownies for 1/10 of their price. His fee: 100 fresh brownies.</p>
+                <button class="btn" id="trashBtn" disabled>DUMP STALE</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn alt" id="tasksClose">CLOSE</button>
+        </div>
+      </div>
 
       <aside id="shop" class="px-panel">
         <nav id="tabs">
@@ -88,7 +97,7 @@
           <button class="tab" data-tab="recipes">RECIPES</button>
           <button class="tab" data-tab="fixes">FIX UP</button>
         </nav>
-        <p id="hint" hidden>Your tray is overflowing! More bakers won't help now. Get more customers, Delivery Bikes, or call the Trash Man.</p>
+        <p id="hint" hidden>Your tray is overflowing! More bakers won't help now. Get more customers or Delivery Bikes.</p>
         <div id="rows"></div>
         <p id="stats"></p>
       </aside>
@@ -125,15 +134,15 @@
     <div id="loading">LOADING...</div>
   </div>
 
-  <script src="js/version.js?v=1.2.0"></script>
-  <script src="js/atlas.js?v=1.2.0"></script>
-  <script src="js/data.js?v=1.2.0"></script>
-  <script src="js/sim.js?v=1.2.0"></script>
-  <script src="js/audio.js?v=1.2.0"></script>
-  <script src="js/render.js?v=1.2.0"></script>
-  <script src="js/ui.js?v=1.2.0"></script>
-  <script src="js/intro.js?v=1.2.0"></script>
-  <script src="js/main.js?v=1.2.0"></script>
+  <script src="js/version.js?v=1.2.1"></script>
+  <script src="js/atlas.js?v=1.2.1"></script>
+  <script src="js/data.js?v=1.2.1"></script>
+  <script src="js/sim.js?v=1.2.1"></script>
+  <script src="js/audio.js?v=1.2.1"></script>
+  <script src="js/render.js?v=1.2.1"></script>
+  <script src="js/ui.js?v=1.2.1"></script>
+  <script src="js/intro.js?v=1.2.1"></script>
+  <script src="js/main.js?v=1.2.1"></script>
 </body>
 
 </html>

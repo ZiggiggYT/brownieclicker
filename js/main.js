@@ -21,12 +21,44 @@
   BB.game = G; // handy from the browser console: BB.game.s is the live state
 
   // ------------------------------------------------------------ layout
+  // The stage is always 800 tall and as wide as the window's shape allows (at
+  // least 1280), so there are no empty bars at the sides. Extra width goes to
+  // the bakery first (until the goal strip under it would get too thin), then
+  // to the shop panel.
+  const STAGE_H = 800;
   function fit() {
-    const k = Math.min(window.innerWidth / 1280, window.innerHeight / 800);
+    const sw = Math.max(1280, Math.round((STAGE_H * window.innerWidth) / window.innerHeight));
+    const k = Math.min(window.innerWidth / sw, window.innerHeight / STAGE_H);
     const st = $('stage');
+    st.style.width = sw + 'px';
     st.style.transform = 'scale(' + k + ')';
-    st.style.left = Math.max(0, (window.innerWidth - 1280 * k) / 2) + 'px';
-    st.style.top = Math.max(0, (window.innerHeight - 800 * k) / 2) + 'px';
+    st.style.left = Math.max(0, (window.innerWidth - sw * k) / 2) + 'px';
+    st.style.top = Math.max(0, (window.innerHeight - STAGE_H * k) / 2) + 'px';
+    layout(sw);
+  }
+
+  function place(id, x, y, w, h) {
+    const el = $(id).style;
+    el.left = x + 'px';
+    el.top = y + 'px';
+    if (w != null) el.width = w + 'px';
+    if (h != null) el.height = h + 'px';
+  }
+
+  function layout(sw) {
+    const LEFT = 76; // the MegaMuffin bar sits in front of this
+    const GAP = 16;
+    const TOP = 80;
+    const BOTTOM = 784;
+    const sceneW = Math.max(820, Math.min(990, sw - LEFT - GAP - 352 - GAP));
+    const shopW = Math.min(520, sw - LEFT - GAP - sceneW - GAP);
+    const off = Math.max(0, Math.floor((sw - (LEFT + sceneW + GAP + shopW + GAP)) / 2)); // very wide screens
+    const sceneH = Math.round((sceneW * 552) / 876);
+    const stripY = TOP + sceneH + GAP;
+    place('megaBar', 12 + off, TOP);
+    place('sceneWrap', LEFT + off, TOP, sceneW, sceneH);
+    place('bottom', LEFT + off, stripY, sceneW, BOTTOM - stripY);
+    place('shop', LEFT + off + sceneW + GAP, TOP, shopW);
   }
 
   // ------------------------------------------------------------ saving
@@ -251,7 +283,7 @@
         const fn = { helper: 'buyHelper', up: 'buyUpgrade', cust: 'buyCust', fix: 'buyFix', recipe: 'unlockRecipe' }[kind];
         if (!act(fn, id)) BB.audio.play('click');
       },
-      give: () => act('give'),
+      give: () => { if (act('give')) BB.ui.closeTasks(); },
       trash: () => act('trash'),
       startDay: () => act('startDay'),
       menu: openMenu,

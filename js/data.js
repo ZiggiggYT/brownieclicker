@@ -196,8 +196,8 @@ BB.DATA = {
   // every one-time upgrade.
   MEGA_SOLD: 1e6,
 
-  // The Trash Man takes every brownie in the tray for a tenth of what it would
-  // sell for. He charges 100 brownies (stale ones first) and comes once a minute.
+  // The Trash Man takes all the STALE brownies for a tenth of what they'd sell
+  // for. He charges 100 fresh brownies and comes once a minute.
   TRASH_FEE: 100,
   TRASH_SHARE: 0.1,
   TRASH_COOLDOWN: 600,

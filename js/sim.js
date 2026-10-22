@@ -170,14 +170,10 @@
   BB.orderReward = s => (s.order ? Math.round(s.order.qty * BB.recipe(s).price * 1.5) : 0);
   BB.currentGoal = s => D.goals.find(g => !s.goalsDone[g.id]) || null;
 
-  // What the Trash Man pays for the whole tray, after taking his 100-brownie fee
-  // (stale ones first). 0 when there isn't more than the fee.
-  BB.trashValue = s => {
-    if (BB.stock(s) <= D.TRASH_FEE) return 0;
-    const staleLeft = Math.max(0, s.stale - D.TRASH_FEE);
-    const freshLeft = s.fresh - Math.max(0, D.TRASH_FEE - s.stale);
-    return Math.floor(D.TRASH_SHARE * (freshLeft * BB.recipe(s).price + staleLeft * BB.stalePrice(s)));
-  };
+  // What the Trash Man pays for all the stale brownies (a tenth of their price).
+  BB.trashValue = s => Math.floor(D.TRASH_SHARE * s.stale * BB.stalePrice(s));
+  // Why he can't come right now: '', 'cooldown', 'nostale' or 'fee' (needs 100 fresh).
+  BB.trashBlock = s => (s.trashCd > 0 ? 'cooldown' : !s.stale ? 'nostale' : s.fresh < D.TRASH_FEE ? 'fee' : '');
 
   // ------------------------------------------------------------ the MegaMuffin bar
   const oneTimeUps = () => {
@@ -583,13 +579,14 @@
       return true;
     },
 
-    // The Trash Man empties the tray. Thrown-out brownies don't count as sold.
+    // The Trash Man takes the stale brownies away; his fee is 100 fresh ones.
+    // Thrown-out brownies don't count as sold.
     trash(s) {
-      if (s.trashCd > 0 || BB.stock(s) <= D.TRASH_FEE) return false;
+      if (BB.trashBlock(s)) return false;
       const amt = BB.trashValue(s);
-      const n = BB.stock(s);
-      s.fresh = 0;
+      const n = s.stale;
       s.stale = 0;
+      s.fresh -= D.TRASH_FEE;
       earn(s, amt);
       s.trashCd = D.TRASH_COOLDOWN;
       emit(s, { k: 'trash', amt, n });

@@ -94,6 +94,9 @@ upgrades bought. When it's full, tap it to watch the ending. Then choose:
   and the crown under the bar shows how many rebirths you've done.
 - **Keep this bakery:** carry on as normal. You can still rebirth later from the bar.
 
+The **Trash Man** (under ORDERS & TRASH MAN, below the bakery) takes all your stale brownies for a
+tenth of their price. His fee is 100 fresh brownies, and he comes once a minute.
+
 Workers are limited by kitchen size (10 of each). Back Room, Second Floor and Brownie Factory in
 FIX UP raise the limit and unlock the Brownie Robot, the Food Truck and the last recipes.
 

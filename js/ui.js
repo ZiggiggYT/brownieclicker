@@ -264,6 +264,9 @@
       }));
       $('giveBtn').addEventListener('click', () => h.give());
       $('trashBtn').addEventListener('click', () => h.trash());
+      $('tasksBtn').addEventListener('click', () => { BB.audio.play('click'); $('tasksPanel').hidden = false; });
+      $('tasksClose').addEventListener('click', () => BB.ui.closeTasks());
+      $('tasksPanel').addEventListener('pointerdown', e => { if (e.target === $('tasksPanel')) BB.ui.closeTasks(); });
       $('startNow').addEventListener('click', () => h.startDay());
       $('menuBtn').addEventListener('click', () => h.menu());
       $('megaBar').addEventListener('click', () => h.mega());
@@ -351,13 +354,19 @@
       }
 
       // the Trash Man
-      let trashLabel;
-      if (s.trashCd > 0) trashLabel = 'BACK IN ' + Math.ceil(s.trashCd / 10) + 's';
-      else if (BB.stock(s) <= D.TRASH_FEE) trashLabel = 'NEED 101+';
-      else trashLabel = 'DUMP ALL +$' + BB.fmt(BB.trashValue(s));
+      const tb = BB.trashBlock(s);
+      const trashLabel = {
+        cooldown: 'BACK IN ' + Math.ceil(s.trashCd / 10) + 's',
+        nostale: 'NO STALE ONES',
+        fee: 'NEED 100 FRESH',
+        '': 'DUMP STALE +$' + BB.fmt(BB.trashValue(s)),
+      }[tb];
       setText($('trashBtn'), 'trash', trashLabel);
-      const canTrash = s.trashCd <= 0 && BB.stock(s) > D.TRASH_FEE;
-      if ($('trashBtn').disabled === canTrash) $('trashBtn').disabled = !canTrash;
+      if ($('trashBtn').disabled === !tb) $('trashBtn').disabled = !!tb;
+
+      // "!" on the ORDERS & TRASH MAN button when there's something to do in there
+      const todo = !!s.order || !tb;
+      if (last.todo !== todo) { last.todo = todo; $('tasksBadge').hidden = !todo; }
 
       // end of day card
       $('dayCard').hidden = s.open;
@@ -399,7 +408,7 @@
           this.banner('GOLDEN BONUS! +$' + BB.fmt(e.amt), '', true);
           break;
         case 'trash':
-          this.banner('TRASH MAN TOOK ' + BB.fmt(e.n) + '! +$' + BB.fmt(e.amt), 'cream');
+          this.banner('TRASH MAN TOOK ' + BB.fmt(e.n) + ' STALE! +$' + BB.fmt(e.amt), 'cream');
           break;
         case 'megaFull':
           this.banner('MEGAMUFFIN IS DONE FOR! TAP THE BAR!', '', true);
@@ -455,6 +464,10 @@
       $('modal').hidden = false;
       const first = box.querySelector('[data-focus]') || box.querySelector('.btn');
       if (first) first.focus();
+    },
+
+    closeTasks() {
+      $('tasksPanel').hidden = true;
     },
 
     closeModal() {

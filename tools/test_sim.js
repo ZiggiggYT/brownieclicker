@@ -131,18 +131,22 @@ v2.coins = 777; v2.helpers.dave = 14;
 const m2 = BB.migrate(JSON.parse(JSON.stringify(v2)));
 check(m2.v === 3 && m2.coins === 777 && m2.helpers.dave === 14 && m2.helpers.robot === 0 && m2.rebirths === 0, 'v2 save migrates (and keeps 14 Daves over the new limit)');
 
-// The Trash Man: everything for a tenth, minus a 100-brownie fee, once a minute.
-s = BB.newState(31); s.fresh = 1100; s.stale = 40; s.recipe = 'mint'; s.recipes.mint = true;
-// fee takes the 40 stale + 60 fresh; 1040 fresh left at $3 -> $312
-check(BB.trashValue(s) === 312, 'Trash Man pays a tenth after his fee (' + BB.trashValue(s) + ')');
+// The Trash Man: takes only the stale brownies for a tenth of their price, his fee is 100 fresh.
+s = BB.newState(31); s.fresh = 300; s.stale = 1000; s.recipe = 'pb'; s.recipes.pb = true;
+// stale pb sells for $2 (half of $5), a tenth of 1000 x $2 = $200
+check(BB.trashValue(s) === 200, 'Trash Man pays a tenth of the stale price (' + BB.trashValue(s) + ')');
 const sold31 = s.totalSold;
-check(BB.act.trash(s) && s.coins === 312 && BB.stock(s) === 0 && s.totalSold === sold31, 'tray emptied, coins paid, not counted as sold');
-s.fresh = 500;
-check(!BB.act.trash(s), 'Trash Man only comes once a minute');
+check(BB.act.trash(s) && s.coins === 200 && s.stale === 0 && s.fresh === 200 && s.totalSold === sold31,
+  'stale ones gone, 100 fresh taken as the fee, not counted as sold');
+s.stale = 50;
+check(!BB.act.trash(s) && BB.trashBlock(s) === 'cooldown', 'Trash Man only comes once a minute');
 s = BB.simN(s, BB.DATA.TRASH_COOLDOWN);
-check(BB.act.trash(s), 'he comes back after a minute');
-s.fresh = 100; s.trashCd = 0;
-check(!BB.act.trash(s), 'needs more than his 100-brownie fee');
+s.fresh = 99; s.stale = 50;
+check(!BB.act.trash(s) && BB.trashBlock(s) === 'fee', 'needs 100 fresh brownies for his fee');
+s.fresh = 500; s.stale = 0;
+check(!BB.act.trash(s) && BB.trashBlock(s) === 'nostale', 'nothing to take without stale brownies');
+s.stale = 10;
+check(BB.act.trash(s) && s.fresh === 400, 'he comes back after a minute');
 
 // Speed of a full hour catch-up.
 const t0 = Date.now(); BB.simN(BB.newState(9), 36000);
