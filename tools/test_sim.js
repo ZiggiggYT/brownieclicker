@@ -131,6 +131,19 @@ v2.coins = 777; v2.helpers.dave = 14;
 const m2 = BB.migrate(JSON.parse(JSON.stringify(v2)));
 check(m2.v === 3 && m2.coins === 777 && m2.helpers.dave === 14 && m2.helpers.robot === 0 && m2.rebirths === 0, 'v2 save migrates (and keeps 14 Daves over the new limit)');
 
+// The Trash Man: everything for a tenth, minus a 100-brownie fee, once a minute.
+s = BB.newState(31); s.fresh = 1100; s.stale = 40; s.recipe = 'mint'; s.recipes.mint = true;
+// fee takes the 40 stale + 60 fresh; 1040 fresh left at $3 -> $312
+check(BB.trashValue(s) === 312, 'Trash Man pays a tenth after his fee (' + BB.trashValue(s) + ')');
+const sold31 = s.totalSold;
+check(BB.act.trash(s) && s.coins === 312 && BB.stock(s) === 0 && s.totalSold === sold31, 'tray emptied, coins paid, not counted as sold');
+s.fresh = 500;
+check(!BB.act.trash(s), 'Trash Man only comes once a minute');
+s = BB.simN(s, BB.DATA.TRASH_COOLDOWN);
+check(BB.act.trash(s), 'he comes back after a minute');
+s.fresh = 100; s.trashCd = 0;
+check(!BB.act.trash(s), 'needs more than his 100-brownie fee');
+
 // Speed of a full hour catch-up.
 const t0 = Date.now(); BB.simN(BB.newState(9), 36000);
 check(Date.now() - t0 < 1500, 'one hour of catch-up runs fast (' + (Date.now() - t0) + ' ms)');

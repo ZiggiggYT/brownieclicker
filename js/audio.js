@@ -52,6 +52,7 @@
     sad: () => { tone(392, 0.15, { type: 'triangle', vol: 0.04 }); tone(330, 0.3, { type: 'triangle', vol: 0.04, delay: 0.15 }); },
     bell: () => { tone(1568, 0.15, { type: 'triangle', vol: 0.04 }); tone(1319, 0.25, { type: 'triangle', vol: 0.04, delay: 0.12 }); },
     click: () => tone(660, 0.03, { vol: 0.02 }),
+    trash: () => { tone(330, 0.25, { to: 70, vol: 0.05 }); tone(160, 0.3, { to: 50, type: 'triangle', vol: 0.06, delay: 0.15 }); },
   };
 
   BB.audio = {

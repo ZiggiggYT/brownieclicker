@@ -80,6 +80,7 @@
       parade: 0,
       goalsDone: {},
       flags: {},
+      trashCd: 0,    // ticks until the Trash Man can come again
       rebirths: 0,   // times you started over after beating MegaMuffin
       beaten: false, // beat MegaMuffin in this bakery
       fx: [],
@@ -169,6 +170,15 @@
   BB.orderReward = s => (s.order ? Math.round(s.order.qty * BB.recipe(s).price * 1.5) : 0);
   BB.currentGoal = s => D.goals.find(g => !s.goalsDone[g.id]) || null;
 
+  // What the Trash Man pays for the whole tray, after taking his 100-brownie fee
+  // (stale ones first). 0 when there isn't more than the fee.
+  BB.trashValue = s => {
+    if (BB.stock(s) <= D.TRASH_FEE) return 0;
+    const staleLeft = Math.max(0, s.stale - D.TRASH_FEE);
+    const freshLeft = s.fresh - Math.max(0, D.TRASH_FEE - s.stale);
+    return Math.floor(D.TRASH_SHARE * (freshLeft * BB.recipe(s).price + staleLeft * BB.stalePrice(s)));
+  };
+
   // ------------------------------------------------------------ the MegaMuffin bar
   const oneTimeUps = () => {
     const ids = [];
@@ -250,6 +260,7 @@
 
     if (s.rush > 0 && --s.rush === 0) emit(s, { k: 'rushEnd' });
     if (s.parade > 0) s.parade--;
+    if (s.trashCd > 0) s.trashCd--;
 
     // Gentle staleness: only bites when the tray is overflowing.
     s.staleT++;
@@ -569,6 +580,19 @@
         emit(s, { k: 'parade', x, y });
       }
       checkGoal(s);
+      return true;
+    },
+
+    // The Trash Man empties the tray. Thrown-out brownies don't count as sold.
+    trash(s) {
+      if (s.trashCd > 0 || BB.stock(s) <= D.TRASH_FEE) return false;
+      const amt = BB.trashValue(s);
+      const n = BB.stock(s);
+      s.fresh = 0;
+      s.stale = 0;
+      earn(s, amt);
+      s.trashCd = D.TRASH_COOLDOWN;
+      emit(s, { k: 'trash', amt, n });
       return true;
     },
 

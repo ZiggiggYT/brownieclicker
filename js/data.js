@@ -195,6 +195,12 @@ BB.DATA = {
   // bakery has sold a million brownies, has 5 stars, and owns every recipe and
   // every one-time upgrade.
   MEGA_SOLD: 1e6,
+
+  // The Trash Man takes every brownie in the tray for a tenth of what it would
+  // sell for. He charges 100 brownies (stale ones first) and comes once a minute.
+  TRASH_FEE: 100,
+  TRASH_SHARE: 0.1,
+  TRASH_COOLDOWN: 600,
   REBIRTH_BOOST: 1.5, // per rebirth, stacking: customers and brownies
   // The first 19 goals of v1, in order: a v1 save's goal index means these are done.
   V1_GOALS: ['bake25', 'coffee', 'sell50', 'sweep', 'pet', 'golden', 'dave', 'star1', 'blondie', 'sign', 'sell1k',

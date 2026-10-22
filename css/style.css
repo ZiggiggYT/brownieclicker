@@ -117,8 +117,8 @@ p { margin: 0; }
 .top-buttons { margin-left: auto; display: flex; gap: 8px; }
 
 /* ------------------------------------------------------------ scene */
-#sceneWrap { position: absolute; left: 16px; top: 80px; width: 876px; height: 552px; background: var(--ink); }
-#scene { display: block; width: 876px; height: 552px; cursor: pointer; touch-action: manipulation; }
+#sceneWrap { position: absolute; left: 76px; top: 80px; width: 820px; height: 517px; background: var(--ink); }
+#scene { display: block; width: 820px; height: 517px; cursor: pointer; touch-action: manipulation; }
 #sceneWrap.rush { animation: rush 0.5s steps(2) infinite; }
 @keyframes rush {
   0% { box-shadow: 0 -4px 0 0 var(--gold), 0 4px 0 0 var(--gold), -4px 0 0 0 var(--gold), 4px 0 0 0 var(--gold), 0 -8px 0 0 #fff1b8, 0 8px 0 0 #fff1b8, -8px 0 0 0 #fff1b8, 8px 0 0 0 #fff1b8; }
@@ -186,7 +186,28 @@ p { margin: 0; }
 .big { font-family: var(--ps); font-size: 24px; color: var(--gold); text-shadow: 3px 3px 0 var(--ink); line-height: 1.4; }
 
 /* ------------------------------------------------------------ bottom strip */
-#bottom { position: absolute; left: 16px; top: 652px; width: 876px; height: 132px; display: flex; gap: 24px; }
+#bottom { position: absolute; left: 76px; top: 616px; width: 820px; height: 168px; display: flex; gap: 24px; }
+
+/* ------------------------------------------------------------ the Beat MegaMuffin bar */
+#megaBar {
+  position: absolute; left: 12px; top: 80px; width: 48px; height: 704px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0;
+  border: 0; font: inherit; color: var(--cream); cursor: pointer;
+}
+#megaBar .ico canvas { width: 36px; height: 36px; }
+.mega-track { position: relative; flex: 1; width: 28px; background: var(--ink); box-shadow: 0 0 0 3px var(--brownie); overflow: hidden; }
+.mega-track i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--crust); box-shadow: inset 0 4px 0 0 var(--gold), inset 4px 0 0 0 #a8743f; }
+.mega-words { position: absolute; inset: 0; writing-mode: vertical-rl; transform: rotate(180deg); display: flex; align-items: center; justify-content: center;
+  font-family: var(--ps); font-size: 9px; letter-spacing: 3px; color: var(--cream); text-shadow: 2px 2px 0 var(--ink); }
+.mega-pct { font-family: var(--ps); font-size: 9px; color: var(--gold); }
+#rebirthBadge { display: flex; flex-direction: column; align-items: center; font-family: var(--ps); font-size: 9px; color: var(--gold); }
+#rebirthBadge canvas { width: 28px; height: 28px; }
+#megaBar.full { animation: megaGlow 0.6s steps(2) infinite; }
+#megaBar.full .mega-track i { background: var(--gold); }
+@keyframes megaGlow {
+  0% { box-shadow: var(--px-border); }
+  100% { box-shadow: 0 -4px 0 0 var(--gold), 0 4px 0 0 var(--gold), -4px 0 0 0 var(--gold), 4px 0 0 0 var(--gold), 0 -8px 0 0 var(--ink), 0 8px 0 0 var(--ink), -8px 0 0 0 var(--ink), 8px 0 0 0 var(--ink); }
+}
 .card { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .card-head { font-family: var(--ps); font-size: 11px; color: var(--ink); background: var(--toffee); padding: 6px 10px; }
 .card-body { flex: 1; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
@@ -199,6 +220,11 @@ p { margin: 0; }
 .order .who { width: 40px; height: 64px; flex: none; }
 .order .order-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 #giveBtn { font-size: 11px; padding: 12px 10px; white-space: nowrap; }
+#goalCard { flex: 1; }
+#orderCard { flex: 1.35; }
+#trashCard { flex: 0.85; }
+.card-body.trash p { font-size: 19px; color: var(--toffee); }
+#trashBtn { font-size: 10px; padding: 10px 6px; white-space: nowrap; }
 
 /* ------------------------------------------------------------ shop panel */
 #shop { position: absolute; left: 912px; top: 80px; width: 352px; height: 704px; display: flex; flex-direction: column; }
@@ -267,7 +293,7 @@ p { margin: 0; }
 /* ------------------------------------------------------------ popups */
 #modal { position: absolute; inset: 0; background: rgba(18, 10, 7, 0.6); display: flex; align-items: center; justify-content: center; z-index: 20; }
 .modal-box { width: 600px; padding: 32px 28px 22px; text-align: center; }
-.modal-box p { font-size: 28px; margin: 18px 0; }
+.modal-box p { font-size: 28px; margin: 18px 0; white-space: pre-line; }
 #modalButtons { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 #modalButtons .btn { min-width: 300px; }
 

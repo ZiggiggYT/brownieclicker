@@ -1,7 +1,8 @@
-// The story intro: title screen, five pixel scenes with typed-out dialogue,
-// and the "GRANDMA'S BAKERY IS OPEN!" end card. Plays on first launch and can
-// be replayed from the menu. Each scene is a 640x300 canvas drawn at 3x
-// (213 x 100 scene pixels), going from gray to warm as the story goes on.
+// Story cutscenes: pixel scenes with typed-out dialogue, stepped fades and an
+// end card. Each scene is a 640x300 canvas drawn at 3x (213 x 100 scene pixels).
+//  - 'intro' plays on first launch (title screen, five scenes going from gray to
+//    warm, "GRANDMA'S BAKERY IS OPEN!") and can be replayed from the menu.
+//  - 'ending' plays when the MegaMuffin bar is full ("YOU BEAT MEGAMUFFIN!").
 (function () {
   const U = 3;
   const W = 214;
@@ -338,8 +339,182 @@
     },
   ];
 
-  // ------------------------------------------------------------ end card
-  function drawEnd(t) {
+  // ------------------------------------------------------------ the ending
+  const CROWD = ['mo', 'pip', 'rose', 'gus', 'jen', 'critic', 'mo', 'rose'];
+
+  function brickWall(x0, y0, w, h, col, mortar) {
+    for (let y = y0; y < y0 + h; y += 4) {
+      rect(x0, y, w, 4, col);
+      rect(x0, y + 3, w, 1, mortar);
+      for (let x = x0 + ((y / 4) % 2) * 6; x < x0 + w; x += 12) rect(x, y, 1, 3, mortar);
+    }
+  }
+
+  function bossCap(x, y) { // a pink MegaMuffin cap on the boss sprite
+    rect(x + 4, y + 3, 10, 3, '#ff9ad0');
+    rect(x + 12, y + 5, 4, 1, '#c25a8a');
+    rect(x + 8, y + 4, 2, 1, '#ffffff');
+  }
+
+  function fireworks(t) {
+    const cols = ['#f5c04a', '#ff9ad0', '#8fe0b0', '#8fc4e8', '#ffffff'];
+    for (let k = 0; k < 4; k++) {
+      const ph = (q(t, 0.05) * 0.55 + k * 0.29) % 1;
+      const cx = 24 + k * 52 + (k % 2) * 8;
+      const cy = 14 + (k % 2) * 10;
+      if (ph < 0.3) {
+        rect(cx, cy + 40 - ph * 130, 1, 3, '#fff1b8');
+      } else {
+        const r = Math.round((ph - 0.3) * 30);
+        for (let i = 0; i < 10; i++) {
+          const a = (i / 10) * Math.PI * 2;
+          rect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r * 0.8), 2, 2, cols[(i + k) % cols.length]);
+        }
+      }
+    }
+  }
+
+  const ENDING = [
+    { // 1. the line goes past MegaMuffin
+      lines: [
+        { text: "Word about Grandma's brownies spread all over town." },
+        { text: 'The line went all the way down the street!' },
+        { text: 'Across the street, MegaMuffin Corp. was very, very quiet.' },
+      ],
+      draw(t, li, lt) {
+        rect(0, 0, W, H, '#8fc4e8');
+        rect(0, 0, W, 10, '#7ab4dc');
+        rect(20 + q(t, 0.2) * 2 % 200, 8, 14, 3, '#ffffff');
+        // Grandma's bakery, all fixed up
+        rect(4, 18, 96, 4, '#3a2018');
+        brickWall(6, 22, 92, 62, '#b05a46', '#8a4434');
+        rect(12, 25, 80, 12, '#2a1a10');
+        text("GRANDMA'S BAKERY", 52, 31.4, 8, '#f5c04a');
+        rect(12, 44, 22, 18, '#ffd59a'); rect(70, 44, 22, 18, '#ffd59a');
+        rect(22, 44, 2, 18, '#5a3d28'); rect(80, 44, 2, 18, '#5a3d28');
+        rect(42, 48, 18, 36, '#5a3d28'); rect(45, 52, 12, 10, '#ffd59a');
+        // MegaMuffin across the street: empty
+        rect(118, 14, 92, 70, '#c25a8a');
+        rect(118, 14, 92, 3, '#8a3a62');
+        rect(124, 20, 80, 11, '#5a1e3e');
+        text('MEGAMUFFIN', 164, 25.8, 9, '#ff9ad0');
+        rect(126, 40, 30, 22, '#8a3a62'); rect(172, 40, 30, 22, '#8a3a62');
+        rect(158, 48, 12, 36, '#5a1e3e');
+        rect(176, 44, 22, 8, '#ffffff'); text('SALE!', 187, 48.4, 7, '#b33a3a');
+        // street
+        rect(0, 84, W, 16, '#7a7a86');
+        rect(0, 84, W, 2, '#9a9aa6');
+        // the line of happy customers
+        const n = 4 + Math.min(4, li * 2);
+        for (let i = 0; i < n; i++) {
+          const look = CROWD[i % CROWD.length];
+          const bob = Math.floor(t * 3 + i) % 2;
+          spr(look + (bob ? '_walk2' : '_happy'), 46 + i * 18, 54 - bob);
+        }
+        if (li >= 2) { // a tumbleweed rolls past MegaMuffin
+          const x = 214 - q(lt, 0.08) * 40;
+          const r = Math.floor(lt * 6) % 2;
+          rect(x, 78, 6, 6, '#a8743f'); rect(x + 1 + r, 79, 2, 1, '#6b4a32'); rect(x + 2, 81 - r, 3, 1, '#6b4a32');
+        }
+      },
+    },
+
+    { // 2. inside MegaMuffin
+      lines: [
+        { who: 'BOSS', text: 'Nobody wants our muffins anymore!' },
+        { who: 'BOSS', text: 'Everybody is eating... BROWNIES!', on: () => { sfx('boom'); st.shakeUntil = performance.now() + 450; } },
+        { text: 'Wait. Is that... your OLD BOSS?' },
+        { text: 'He got a new job at MegaMuffin. It did not go great.' },
+      ],
+      draw(t, li, lt) {
+        for (let x = 0; x < W; x += 12) { rect(x, 0, 6, 82, '#ffd0e6'); rect(x + 6, 0, 6, 82, '#ffbcdc'); }
+        rect(0, 82, W, 18, '#c25a8a');
+        for (let x = 0; x < W; x += 16) rect(x, 82, 8, 18, '#b04a7a');
+        // the sign loses a letter on each line
+        const word = 'MEGAMUFFIN';
+        const falls = [4, 8, 1]; // which letters drop on lines 1, 2, 3
+        const gone = falls.slice(0, li);
+        rect(46, 6, 122, 16, '#5a1e3e');
+        for (let i = 0; i < word.length; i++) {
+          const k = gone.indexOf(i);
+          if (k === -1) { text(word[i], 54 + i * 12, 14.4, 14, '#ff9ad0'); continue; }
+          const since = k === li - 1 ? lt : 9; // the newest one is still falling
+          const y = Math.min(88, 14 + q(since, 0.05) * 180);
+          text(word[i], 54 + i * 12, y, 14, '#ff9ad0', '#5a1e3e');
+        }
+        // counter full of muffins nobody bought
+        rect(30, 60, 150, 24, '#8a3a62'); rect(30, 58, 150, 3, '#ff9ad0');
+        spr(li >= 1 ? 'boss_angry' : 'boss_walk1', 96, 28);
+        bossCap(96, 28);
+        for (let i = 0; i < 5; i++) spr('icon_muffin', 36 + i * 28 + (i > 1 ? 16 : 0), 41);
+        if (li >= 2) text('?!', 116, 26, 12, '#ffffff', '#5a1e3e');
+      },
+    },
+
+    { // 3. the boss asks for a job
+      lines: [
+        { who: 'BOSS', text: '...Hi. Um. Are you hiring?' },
+        { who: 'YOU', text: 'Hmm. Can you bake?' },
+        { who: 'BOSS', text: "No. But I'm VERY good at meetings." },
+        { who: 'YOU', text: "You're hired. NO NAPPING!", on: () => { sfx('jingle'); st.flashUntil = performance.now() + 200; } },
+        { text: 'That night, MegaMuffin Corp. closed its doors for good.' },
+      ],
+      draw(t, li) {
+        for (let x = 0; x < W; x += 16) { rect(x, 0, 8, 82, '#9a3a30'); rect(x + 8, 0, 8, 82, '#b24a3a'); }
+        rect(0, 64, W, 18, '#5a3324'); rect(0, 63, W, 2, '#c9a98a');
+        rect(0, 82, W, 18, '#6b4a32');
+        for (let y = 82; y < H; y += 6) rect(0, y, W, 1, '#4e3424');
+        spr('oven', 6, 18);
+        glow(30, 60, [30, 18], 'rgba(120,50,10,0.16)');
+        spr('grandma_portrait', 66, 10);
+        spr(li >= 3 ? 'baker_bake' : 'baker_idle', 84, 28);
+        spr('counter', 70, 50);
+        spr('brownie_golden', 112, 34);
+        // the boss walks in from the right
+        const x = Math.max(150, 214 - q(t, 0.1) * 30);
+        const walking = x > 150;
+        const bob = walking ? Math.floor(t * 4) % 2 : 0;
+        spr(li >= 3 ? 'boss_apron' : 'boss_walk1', x, 50 - bob);
+        if (li < 3) bossCap(x, 50 - bob);
+        if (li >= 3) for (let k = 0; k < 3; k++) sparkle(146 + k * 12, 46 + (k % 2) * 8, t, k);
+      },
+    },
+
+    { // 4. the party
+      lines: [
+        { text: "Grandma's Bakery became the most famous bakery in the whole world." },
+        { text: 'And somewhere up there, Grandma was smiling.' },
+        { who: 'YOU', text: 'Best. Job. EVER.' },
+      ],
+      draw(t, li) {
+        rect(0, 0, W, H, '#1a1a3a');
+        rect(0, 40, W, 30, '#24244a');
+        for (let i = 0; i < 20; i++) if ((i + Math.floor(t * 2)) % 5) rect((i * 47) % W, (i * 13) % 40, 1, 1, '#fff8dc');
+        fireworks(t);
+        if (li >= 1) { // grandma in the stars
+          spr('grandma_portrait', 150, 4);
+          for (let k = 0; k < 3; k++) sparkle(148 + k * 12, 4 + (k % 2) * 24, t, k);
+        }
+        brickWall(30, 34, 120, 50, '#b05a46', '#8a4434');
+        rect(28, 30, 124, 4, '#3a2018');
+        rect(40, 36, 100, 11, '#2a1a10');
+        text("GRANDMA'S BAKERY", 90, 41.7, 9, Math.floor(t * 4) % 2 ? '#f5c04a' : '#fff1b8');
+        rect(48, 52, 26, 20, '#ffd59a'); rect(106, 52, 26, 20, '#ffd59a');
+        glow(90, 60, [44, 30], 'rgba(120,80,20,0.12)');
+        rect(0, 84, W, 16, '#3a3a48');
+        // everybody, bouncing
+        const team = ['baker_bake', 'boss_apron', 'linda_happy', 'dave_walk1', 'mo_happy', 'pip_happy', 'rose_happy', 'jen_happy', 'critic_happy', 'gus_happy'];
+        team.forEach((name, i) => {
+          const hop = Math.floor(t * 4 + i * 1.7) % 3 === 0 ? 3 : 0;
+          spr(name, 2 + i * 21, 58 - hop);
+        });
+        spr('fudge_sit', 190, 76);
+      },
+    },
+  ];
+
+  // ------------------------------------------------------------ end cards
+  function drawIntroEnd(t) {
     SCENES[4].draw(t, 5, 9);
     rect(0, 0, W, H, 'rgba(29,18,13,0.55)');
     text('DAY 1', W / 2, 36, 24, '#f5c04a', '#120a07');
@@ -347,6 +522,21 @@
     text('IS OPEN!', W / 2, 66, 16, '#f6e7cf', '#120a07');
     if (Math.random() < 0.5) confetti(6);
   }
+
+  function drawEndingEnd(t) {
+    ENDING[3].draw(t, 2, 9);
+    rect(0, 0, W, H, 'rgba(29,18,13,0.55)');
+    spr('icon_crown', W / 2 - 18, 8, 2);
+    text('YOU BEAT', W / 2, 54, 20, '#f6e7cf', '#120a07');
+    text('MEGAMUFFIN!', W / 2, 70, 24, '#f5c04a', '#120a07');
+    if (Math.random() < 0.6) confetti(8);
+  }
+
+  const STORIES = {
+    intro: { scenes: SCENES, drawEnd: drawIntroEnd, endText: "DAY 1 \u00b7 GRANDMA'S BAKERY IS OPEN!", title: true },
+    ending: { scenes: ENDING, drawEnd: drawEndingEnd, endText: 'YOU BEAT MEGAMUFFIN CORP!' },
+  };
+  const story = () => STORIES[st.story];
 
   function confetti(n) {
     const cols = ['#f5c04a', '#ff9ad0', '#8fe0b0', '#8fc4e8', '#f6e7cf', '#ff6a8a'];
@@ -369,7 +559,8 @@
   function sfx(n) { BB.audio.play(n); }
 
   function curLine() {
-    return SCENES[st.scene] && SCENES[st.scene].lines[st.line];
+    const sc = story().scenes[st.scene];
+    return sc && sc.lines[st.line];
   }
 
   function startLine() {
@@ -386,12 +577,12 @@
     st.scene = i;
     st.line = 0;
     st.sceneStart = performance.now();
-    if (i >= SCENES.length) {
+    if (i >= story().scenes.length) {
       st.mode = 'end';
       st.endAt = performance.now();
       $('speaker').textContent = '';
       $('line').className = 'title';
-      $('line').textContent = "DAY 1 · GRANDMA'S BAKERY IS OPEN!";
+      $('line').textContent = story().endText;
       sfx('fanfare');
       confetti(80);
       return;
@@ -423,7 +614,7 @@
       st.chars = l.text.length;
       return;
     }
-    if (st.line + 1 < SCENES[st.scene].lines.length) {
+    if (st.line + 1 < story().scenes[st.scene].lines.length) {
       st.line++;
       startLine();
     } else {
@@ -459,11 +650,11 @@
       const shown = l.text.slice(0, st.chars);
       if ($('line').textContent !== shown) $('line').textContent = shown;
       $('more').hidden = st.chars < l.text.length;
-      SCENES[st.scene].draw(t, st.line, (now - st.lineStart) / 1000);
+      story().scenes[st.scene].draw(t, st.line, (now - st.lineStart) / 1000);
     } else if (st.mode === 'end') {
       $('more').hidden = false;
-      drawEnd(t);
-      if (now - st.endAt > 6000) { ctx.restore(); finish(); return; }
+      story().drawEnd(t);
+      if (now - st.endAt > 7000) { ctx.restore(); finish(); return; }
     }
     ctx.restore();
     drawParts(dt);
@@ -513,15 +704,24 @@
       });
     },
 
-    start(onDone) {
-      st = { mode: 'title', onDone, scene: 0, line: 0, chars: 0, sceneStart: performance.now(), lineStart: 0 };
+    // Play a story ('intro' or 'ending'), then call onDone. SKIP also ends it.
+    start(onDone, name) {
+      const which = STORIES[name] ? name : 'intro';
+      st = { story: which, mode: 'title', onDone, scene: 0, line: 0, chars: 0, sceneStart: performance.now(), lineStart: 0 };
       parts = [];
       $('intro').hidden = false;
-      $('titleScreen').hidden = false;
       $('speaker').textContent = '';
       $('line').textContent = '';
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, cv.width, cv.height);
+      if (STORIES[which].title) {
+        $('titleScreen').hidden = false;
+      } else {
+        $('titleScreen').hidden = true;
+        sfx('jingle');
+        setScene(0);
+        st.fade = { t0: performance.now() - 400, next: 0, switched: true }; // fade in from black
+      }
       requestAnimationFrame(loop);
     },
 
