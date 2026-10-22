@@ -52,4 +52,12 @@ check(s.open && s.day === 2, 'next day starts by itself');
 // Speed of a full hour catch-up.
 const t0 = Date.now(); BB.simN(BB.newState(9), 36000);
 check(Date.now() - t0 < 1500, 'one hour of catch-up runs fast (' + (Date.now() - t0) + ' ms)');
+
+// Release version: index.html's ?v= strings must match js/version.js (tools/bump_version.py keeps them in sync).
+const root = path.join(__dirname, '..');
+const version = /BB\.VERSION = '([^']+)'/.exec(fs.readFileSync(path.join(root, 'js/version.js'), 'utf8'))[1];
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const vs = [...html.matchAll(/\?v=([0-9.]+)/g)].map(m => m[1]);
+check(vs.length >= 10 && vs.every(v => v === version), 'index.html cache-busting matches version ' + version);
+check(/src="js\/(\w+)\.js"/.test(html) === false && !/href="css\/style\.css"/.test(html), 'every css/js link is versioned');
 process.exit(fails ? 1 : 0);
