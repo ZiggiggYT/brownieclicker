@@ -27,6 +27,8 @@
     hops: {},       // customer id -> until
     squish: 0,
     arms: 0,
+    combo: 0,
+    lastBake: 0,
     daves: [],
     cat: { x: 120, dir: 1, mode: 'walk', target: 150, until: 0, bubble: 0 },
     lastNow: 0,
@@ -706,7 +708,15 @@
           vis.arms = now + 220;
           const cx = BIG.x + 50 + (Math.random() * 40 - 20);
           burst(cx, BIG.y + 30, 8, [BB.recipe(s).base, BB.recipe(s).top, '#3a1c12'], { speed: 160, up: 140, size: 6 });
-          floatText('+' + e.n, cx, BIG.y - 6, COL.cream, 18);
+          floatText('+' + BB.fmt(e.n), cx, BIG.y - 6, COL.cream, 18);
+          // fast clicking builds a combo (just for fun)
+          vis.combo = now - vis.lastBake < 450 ? vis.combo + 1 : 1;
+          vis.lastBake = now;
+          if (vis.combo % 10 === 0) {
+            floatText('COMBO x' + vis.combo + '!', BIG.x + 50, BIG.y - 40, COL.gold, 16);
+            burst(BIG.x + 50, BIG.y + 20, 16, [COL.gold, '#fff1b8', BB.recipe(s).top], { speed: 260, up: 160, size: 6 });
+            BB.audio.play('coin');
+          }
           break;
         }
         case 'arrive':

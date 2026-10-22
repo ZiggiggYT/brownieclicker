@@ -29,24 +29,43 @@ Then open <http://localhost:8000>.
 
 There's nothing to build: Pages serves the files exactly as they are in the repo.
 
+## Releasing an update
+
+1. Bump the version: `python tools/bump_version.py 1.2.0`. It updates `js/version.js` and the `?v=`
+   cache-busting on every CSS/JS link in `index.html`. (`npm test` fails if they don't match.)
+2. Commit and push to the Pages branch.
+
+Players get the new version on their next visit, no hard refresh needed. The service worker is
+registered as `sw.js?v=<version>`, so each release gets its own offline cache. Old caches are
+deleted, and open tabs reload into the new version (the game saves first). The game's own files
+come from the network first; the cache is only a fallback when offline.
+
 ## How it works
 
 | File | What it does |
 |---|---|
-| `js/data.js` | Every number in the game: helpers, fix-ups, recipes, special orders, goals. Add new ones here. |
+| `js/data.js` | Every number in the game: helpers and their upgrades, customer upgrades, fix-ups, recipes, special orders, goals. Add new ones here. |
 | `js/sim.js` | The simulation. `BB.sim(state)` returns the state one 0.1 s tick later, with no DOM and no hidden randomness (the seed is in the state). Player actions are in `BB.act`. |
 | `js/main.js` | Real-time loop, input, autosave (`localStorage`, every 5 s and on `pagehide`), and catching up time away (up to one hour). |
 | `js/render.js` | Draws the bakery on a canvas from the sprite sheet, 3x, no smoothing. |
 | `js/ui.js` | Top bar, shop panel, goal and order cards, banners, popups. |
 | `js/intro.js` | The story intro. |
 | `js/audio.js` | Retro WebAudio beeps (sound is off by default). |
-| `sw.js` | Service worker for offline play. |
+| `js/version.js` | The release version (see above). |
+| `sw.js` | Service worker for offline play and updates. |
 
 The game runs off the wall clock: each frame it counts how many 0.1 s ticks have passed and
 runs the sim that many times. The bakery keeps going in a background tab, and when you come
 back after a while it catches up and shows **WELCOME BACK!**
 
 Run the simulation checks with `node tools/test_sim.js` (or `npm test`).
+
+Check the game's pacing with `node tools/pacing.js [hours]`. A bot plays like a kid at school:
+20 minutes of clicking every 3 hours, otherwise left open, buying the cheapest thing it can.
+The script prints when each item and goal arrives. Use it after changing prices.
+
+Saves carry a version number (`state.v`). `BB.migrate` in `js/sim.js` upgrades older saves, so
+players never lose their bakery. Add a step there when the save layout changes.
 
 Open the browser console and type `BB.game.s` to inspect the live game state.
 
@@ -68,6 +87,5 @@ Fonts are Press Start 2P and VT323 from Google Fonts, with a monospace fallback 
 ## Ideas for later
 
 The MegaMuffin rival storyline, your old boss visiting, seasonal events (Halloween!),
-achievements, and more recipes. New helpers, recipes, orders and goals only need entries in
-`js/data.js`. Saves from older versions merge onto a fresh state, so new fields get their
-default values.
+achievements, and more recipes. New helpers, upgrades, recipes, orders and goals only need entries
+in `js/data.js`. Goals are saved by id, so new ones can go anywhere in the list.
