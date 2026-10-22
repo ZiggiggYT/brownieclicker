@@ -22,38 +22,38 @@ BB.DATA = {
 
   // Workers. `rate` bakes brownies a second, `sells` delivers them. Each worker has
   // upgrades that show up under it in the HELPERS tab once you own one; `needs` is
-  // how many of that worker you need first and `mult` multiplies its output.
+  // how many of that worker you need first (`unit` names them) and `mult` multiplies its output.
   helpers: [
     { id: 'nap', name: 'Stop Napping', line: '+1 brownie per click', price: 15, repeat: true, icon: 'icon_pillow',
-      banner: 'NO MORE NAPS!', who: 'YOU', upgrades: [
+      banner: 'NO MORE NAPS!', unit: '', upgrades: [
         { id: 'mitts', name: 'Oven Mitts', line: 'Your clicks bake 2x', price: 120, needs: 1, mult: 2, icon: 'icon_mitts', banner: 'COZY OVEN MITTS!' },
         { id: 'pin', name: "Grandma's Rolling Pin", line: 'Your clicks bake 2x', price: 2500, needs: 5, mult: 2, icon: 'icon_rollingpin', banner: "GRANDMA'S ROLLING PIN!" },
         { id: 'spatula', name: 'Golden Spatula', line: 'Your clicks bake 3x', price: 150000, needs: 15, mult: 3, icon: 'icon_spatula', banner: 'THE GOLDEN SPATULA!' },
       ] },
     { id: 'coffee', name: 'Morning Coffee', line: 'Bakes 0.5 brownies a second', price: 40, repeat: true, rate: 0.5,
-      icon: 'icon_coffee', banner: 'COFFEE IS BREWING!', who: 'COFFEE', upgrades: [
+      icon: 'icon_coffee', banner: 'COFFEE IS BREWING!', unit: 'COFFEES', upgrades: [
         { id: 'espresso', name: 'Espresso', line: 'Coffee bakes 2x faster', price: 350, needs: 1, mult: 2, icon: 'icon_espresso', banner: 'ESPRESSO TIME!' },
         { id: 'fancymug', name: 'Fancy Mug', line: 'Coffee bakes 2x faster', price: 3000, needs: 5, mult: 2, icon: 'icon_fancymug', banner: 'SO FANCY!' },
         { id: 'pot', name: 'Bottomless Pot', line: 'Coffee bakes 2x faster', price: 80000, needs: 15, mult: 2, icon: 'icon_coffeepot', banner: 'BOTTOMLESS COFFEE!' },
       ] },
     { id: 'dave', name: 'Hire Dave', line: 'Bakes 1 brownie a second', price: 300, repeat: true, rate: 1,
-      icon: 'dave_walk1', banner: 'DAVE JOINED THE TEAM!', who: 'DAVE', upgrades: [
+      icon: 'dave_walk1', banner: 'DAVE JOINED THE TEAM!', unit: 'DAVES', upgrades: [
         { id: 'whisk', name: 'Better Whisk', line: 'Daves bake 2x faster', price: 1800, needs: 1, mult: 2, icon: 'icon_whisk', banner: 'WHISK WHISK WHISK!' },
         { id: 'shoes', name: 'Speed Shoes', line: 'Daves zoom around. 2x faster', price: 9000, needs: 3, mult: 2, icon: 'icon_shoes', banner: 'ZOOM ZOOM, DAVE!' },
         { id: 'trays', name: 'Double Trays', line: 'Daves carry 2 trays. 2x faster', price: 90000, needs: 8, mult: 2, icon: 'icon_trays', banner: 'DOUBLE TRAYS!' },
       ] },
     { id: 'linda', name: 'Hire Linda', line: 'Customers buy faster', price: 800, repeat: false,
-      icon: 'linda_happy', banner: 'LINDA JOINED THE TEAM!', who: 'LINDA', upgrades: [
+      icon: 'linda_happy', banner: 'LINDA JOINED THE TEAM!', unit: '', upgrades: [
         { id: 'smile', name: 'Friendly Smile', line: 'More stars, and some buy 1 extra', price: 2500, needs: 1, icon: 'icon_smile', banner: 'WHAT A SMILE!' },
         { id: 'register', name: 'Speedy Register', line: 'Checkout is instant. Ka-ching!', price: 7000, needs: 1, icon: 'icon_register', banner: 'KA-CHING!' },
       ] },
     { id: 'bike', name: 'Delivery Bike', line: 'Delivers 0.5 brownies a second around town', price: 1500, repeat: true, sells: 0.5,
-      icon: 'icon_bike', banner: 'DELIVERIES ARE ROLLING!', who: 'BIKES', upgrades: [
+      icon: 'icon_bike', banner: 'DELIVERIES ARE ROLLING!', unit: 'BIKES', upgrades: [
         { id: 'basket', name: 'Cargo Basket', line: 'Bikes deliver 2x more', price: 12000, needs: 3, mult: 2, icon: 'icon_basket', banner: 'BIG BASKETS!' },
         { id: 'ebike', name: 'Electric Bikes', line: 'Bikes deliver 2x more', price: 150000, needs: 8, mult: 2, icon: 'icon_ebike', banner: 'ELECTRIC BIKES! BZZT!' },
       ] },
     { id: 'oven', name: 'Another Oven', line: 'Bakes 4 brownies a second', price: 2500, repeat: true, rate: 4,
-      icon: 'icon_oven', banner: 'ANOTHER OVEN FIRED UP!', who: 'OVENS', upgrades: [
+      icon: 'icon_oven', banner: 'ANOTHER OVEN FIRED UP!', unit: 'OVENS', upgrades: [
         { id: 'fire', name: 'Hotter Fire', line: 'Ovens bake 2x faster', price: 20000, needs: 1, mult: 2, icon: 'icon_fire', banner: 'HOTTER FIRE!' },
         { id: 'pans', name: 'Bigger Pans', line: 'Ovens bake 2x faster', price: 200000, needs: 6, mult: 2, icon: 'icon_pans', banner: 'BIGGER PANS!' },
         { id: 'magic', name: 'Magic Flame', line: 'Ovens bake 3x faster', price: 2000000, needs: 12, mult: 3, icon: 'icon_magicflame', banner: 'A MAGIC FLAME?!' },

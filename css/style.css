@@ -182,6 +182,7 @@ p { margin: 0; }
 }
 #dayCard p { font-size: 28px; margin: 14px 0 6px; }
 #dayCard .sub { color: var(--toffee); font-size: 24px; margin-bottom: 14px; }
+#dayCard .extra { color: var(--gold); font-size: 24px; margin: 4px 0; min-height: 0; }
 .big { font-family: var(--ps); font-size: 24px; color: var(--gold); text-shadow: 3px 3px 0 var(--ink); line-height: 1.4; }
 
 /* ------------------------------------------------------------ bottom strip */
@@ -203,16 +204,21 @@ p { margin: 0; }
 #shop { position: absolute; left: 912px; top: 80px; width: 352px; height: 704px; display: flex; flex-direction: column; }
 #tabs { display: flex; background: var(--ink); gap: 4px; padding-bottom: 4px; }
 .tab {
+  position: relative;
   flex: 1;
   font-family: var(--ps);
-  font-size: 10px;
-  padding: 14px 4px;
+  font-size: 8px;
+  padding: 14px 2px;
   border: 0;
   background: var(--brownie);
   color: var(--toffee);
   cursor: pointer;
 }
 .tab.active { background: var(--panel); color: var(--gold); }
+/* something in this tab can be bought right now */
+.tab.dot::after { content: ''; position: absolute; right: 4px; top: 4px; width: 8px; height: 8px; background: var(--gold); box-shadow: 0 0 0 2px var(--ink); animation: blink 1s steps(1) infinite; }
+#hint { margin: 10px 10px 0; padding: 8px 10px; font-size: 20px; color: var(--ink); background: var(--pink-hi); box-shadow: inset 0 -4px 0 0 var(--pink); }
+#stats { padding: 8px 10px; font-family: var(--ps); font-size: 8px; line-height: 1.6; color: var(--toffee); background: var(--ink); text-align: center; }
 #rows { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; scrollbar-color: var(--crust) var(--ink); }
 .row {
   display: grid;
@@ -237,13 +243,24 @@ p { margin: 0; }
 .row .name { font-family: var(--ps); font-size: 11px; color: var(--cream); display: flex; justify-content: space-between; gap: 6px; }
 .row .count { color: var(--gold); }
 .row .line { font-size: 21px; color: var(--toffee); }
-.row .price { font-family: var(--ps); font-size: 12px; color: var(--gold); display: flex; align-items: center; gap: 6px; }
+.row .price { font-family: var(--ps); font-size: 12px; color: var(--gold); display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.row .cost { display: flex; align-items: center; gap: 6px; }
+.row .badges { display: flex; gap: 2px; }
+.row .badges canvas { width: 24px; height: 24px; }
+/* worker upgrades sit under their worker, a bit smaller */
+.row.sub { margin-left: 22px; width: calc(100% - 22px); min-height: 70px; grid-template-columns: 40px 1fr; padding: 8px; background: #4a2a1d; }
+.row.sub:hover { background: #5a3324; }
+.row.sub .icon { width: 40px; height: 40px; }
+.row.sub .line { font-size: 19px; }
+.row.sub .name { font-size: 10px; }
+.row.sub.dim:hover { background: #4a2a1d; }
 .row.dim { opacity: 0.5; cursor: default; }
 .row.dim:hover { background: var(--brownie); }
 .row.owned { background: #3a5a3a; box-shadow: inset 0 -4px 0 0 #2a4a2a, 0 0 0 4px var(--ink); cursor: default; }
 .row.owned .price { color: #b8f0cc; }
 .row.current { background: #3a5a3a; box-shadow: inset 0 -4px 0 0 #2a4a2a, 0 0 0 4px var(--gold); }
 .row.locked .price { color: var(--toffee); }
+.row.locked .cost { font-size: 9px; }
 
 .ico { display: inline-block; }
 

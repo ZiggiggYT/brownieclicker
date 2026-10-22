@@ -104,6 +104,7 @@
     const map = {
       bake: 'bake', sale: 'coin', buy: 'buy', goal: 'buy', rush: 'golden', bonus: 'golden', meow: 'meow',
       orderNew: 'bell', orderDone: 'coin', aww: 'sad', dayEnd: 'jingle', dayStart: 'bell', goldenIn: 'bell',
+      lunch: 'jingle', parade: 'golden',
     };
     if (map[e.k]) BB.audio.play(map[e.k]);
   }

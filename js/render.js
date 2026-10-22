@@ -176,9 +176,54 @@
     rect(wx + 31, wy + 22, 20, 5, '#5a1e3e');
     text('MEGA', wx + 15, wy + 24.6, { size: 8, color: blink ? COL.pinkHi : '#ffffff', shadow: false });
     text('MUFFIN', wx + 41, wy + 24.6, { size: 8, color: blink ? COL.pinkHi : '#ffffff', shadow: false });
+    // delivery bikes ride past on the street, more often the more bikes you have
+    const bikes = s.helpers.bike;
+    if (bikes && s.open) {
+      const period = Math.max(3, 9 / Math.min(bikes, 3));
+      const bt = (T % period) / period;
+      const bx = Math.round(wx + 56 - bt * 70);
+      const by = wy + 31;
+      const spin = Math.floor(T * 8) % 2;
+      rect(bx, by + 4, 3, 3, '#2a2a2a'); rect(bx + 7, by + 4, 3, 3, '#2a2a2a');
+      rect(bx + 1 - spin, by + 5, 1, 1, '#9aa0ad'); rect(bx + 8 + spin, by + 5, 1, 1, '#9aa0ad');
+      rect(bx + 2, by + 4, 6, 1, s.ups.ebike ? '#3f6fb5' : '#c24a4a');
+      rect(bx + 4, by - 1, 3, 4, '#e0a030');
+      rect(bx + 4, by - 4, 3, 3, '#f2c9a0');
+      rect(bx + 4, by - 5, 3, 1, '#4a8a4a');
+      rect(bx, by + 1, 3, 3, s.ups.basket ? '#c9945a' : '#a8743f');
+    }
     if (phase === 'night' || phase === 'dusk') rect(wx + 4, wy + 4, 48, 34, 'rgba(10,10,40,0.35)');
     ctx.restore();
+    if (s.cust.window) {
+      // a brownie on a little cake stand in the window
+      const r = BB.recipe(s);
+      rect(wx + 7, wy + 36, 13, 1, '#ffffff');
+      rect(wx + 12, wy + 37, 3, 3, '#c9e0f0');
+      mini(wx + 10, wy + 31, r.top, r.base);
+      if (Math.floor(T * 2) % 2) rect(wx + 19, wy + 30, 1, 1, '#fff1b8');
+    }
     rect(wx + 26, wy + 4, 4, 34, '#5a3d28');
+  }
+
+  // Things pinned to the walls by customer upgrades.
+  function drawWallExtras(s, T) {
+    if (s.cust.news) {
+      spr('icon_news', 40, 42);
+      text('#1 BROWNIES', 49, 63, { size: 6, color: COL.cream });
+    }
+    if (s.cust.flyers) {
+      spr('icon_flyer', 207, 46);
+      spr('icon_flyer', 224, 52);
+    }
+    if (s.cust.rush) {
+      spr('icon_rush', 261, 66);
+      if (BB.lunchRush(s)) {
+        const on = Math.floor(T * 3) % 2;
+        rect(253, 56, 34, 9, COL.ink);
+        rect(254, 57, 32, 7, on ? COL.pinkHi : COL.pink);
+        text('LUNCH RUSH', 270, 60.7, { size: 7, color: on ? COL.ink : '#ffffff', shadow: false });
+      }
+    }
   }
 
   function drawSign(s, T) {
@@ -253,15 +298,24 @@
     spr('oven', 4, 86);
     // flickering fire, redrawn in steps
     const step = Math.floor(T * 7);
+    const magic = s.ups.magic;
+    const hot = s.ups.fire;
+    const fc = magic ? ['#7a5aff', '#a06aff', '#ff9ad0', '#8fe0f0'] : ['#ff6a2a', '#ff8a3d', '#ffc04a', '#ffe08a'];
     rect(16, 113, 24, 17, '#1a0d0a');
-    rect(16, 124, 24, 6, '#ff6a2a');
+    rect(16, 124, 24, 6, fc[0]);
     for (let i = 0; i < 6; i++) {
-      const h = 4 + Math.floor(hash(step * 7 + i) * 8);
-      rect(16 + i * 4, 124 - h, 4, h, '#ff8a3d');
+      const h = Math.min(11, (hot ? 7 : 4) + Math.floor(hash(step * 7 + i) * 8));
+      rect(16 + i * 4, 124 - h, 4, h, fc[1]);
       const h2 = Math.floor(h * 0.55);
-      rect(17 + i * 4, 124 - h2, 2, h2, '#ffc04a');
+      rect(17 + i * 4, 124 - h2, 2, h2, fc[2]);
     }
-    rect(20, 126, 16, 3, '#ffe08a');
+    rect(20, 126, 16, 3, fc[3]);
+    if (hot) rect(24, 122 + (step % 2), 8, 4, '#ffffff');
+    if (s.helpers.oven) {
+      rect(9, 141, 16, 7, COL.ink);
+      rect(10, 142, 14, 5, '#c99428');
+      text('x' + (s.helpers.oven + 1), 17, 144.7, { size: 7, color: COL.ink, shadow: false });
+    }
     // steam puffs drifting up past the chimney
     for (let i = 0; i < 4; i++) {
       const p = ((T * 0.35 + i / 4) % 1);
@@ -311,15 +365,46 @@
 
   function drawCounter(s, now) {
     // you, behind the counter
-    spr(now < vis.arms ? 'baker_bake' : 'baker_idle', 70, 90);
+    const arms = now < vis.arms;
+    spr(arms ? 'baker_bake' : 'baker_idle', 70, 90);
+    if (s.ups.mitts) { // oven mitts on your hands
+      const hy = arms ? 97 : 109;
+      rect(72, hy, 2, 3, '#c24a4a'); rect(83, hy, 2, 3, '#c24a4a');
+    }
     if (s.helpers.linda) {
       const busy = s.customers.some(c => c.st === 'wait');
-      spr(busy ? 'linda_happy' : 'linda_idle', 156, 84);
+      spr(busy || s.ups.smile ? 'linda_happy' : 'linda_idle', 150, 84);
+      if (s.ups.smile && (now / 1000) % 5 < 0.9) spr('heart', 157, 77 - Math.floor(((now / 1000) % 5) * 6));
     }
     spr('counter', 60, 118);
     spr('counter', 124, 118);
     if (s.helpers.coffee) {
-      spr('icon_coffee', 56, 101);
+      spr(s.ups.fancymug ? 'icon_fancymug' : 'icon_coffee', 56, 101);
+      if (s.ups.espresso) { // a tiny espresso cup in front of the mug
+        rect(61, 113, 6, 5, COL.ink); rect(62, 114, 4, 3, '#f0f0ea'); rect(62, 114, 4, 1, '#3a1c12');
+      }
+    }
+    if (s.ups.register) {
+      rect(176, 109, 12, 9, COL.ink);
+      rect(177, 110, 10, 7, '#9aa0ad');
+      rect(178, 105, 8, 5, COL.ink);
+      rect(179, 106, 6, 3, '#8fe0b0');
+      rect(178, 112, 2, 1, '#f6f6f0'); rect(181, 112, 2, 1, '#f6f6f0'); rect(184, 112, 2, 1, '#f6f6f0');
+    }
+    if (s.cust.tipjar) { // fills up with coins as tips come in today
+      const lvl = Math.min(7, Math.ceil(s.dayTips / 2));
+      rect(165, 106, 10, 12, COL.ink);
+      rect(166, 107, 8, 10, 'rgba(201,224,240,0.45)');
+      if (lvl) rect(166, 117 - lvl, 8, lvl, COL.gold);
+      rect(166, 105, 8, 1, '#a8c0d0');
+      rect(167, 108, 1, 4, '#ffffff');
+    }
+    if (s.cust.samples) { // free samples card on the counter front
+      rect(155, 121, 30, 13, COL.ink);
+      rect(156, 122, 28, 11, COL.cream);
+      text('FREE', 170, 125.5, { size: 7, color: '#b33a3a', shadow: false });
+      const r = BB.recipe(s);
+      for (let i = 0; i < 3; i++) { rect(159 + i * 8, 129, 4, 3, r.base); rect(159 + i * 8, 129, 4, 1, r.top); }
     }
     // the big brownie on its pan
     rect(87, 114, 40, 4, '#9aa0ad');
@@ -347,54 +432,99 @@
   function drawTray(s) {
     const r = BB.recipe(s);
     const gold = s.fix.case;
-    rect(129, 103, 58, 15, 'rgba(201,224,240,0.22)');
-    const fresh = Math.min(14, s.fresh);
-    const stale = Math.min(14 - fresh, s.stale);
+    rect(129, 103, 34, 15, 'rgba(201,224,240,0.22)');
+    const fresh = Math.min(8, s.fresh);
+    const stale = Math.min(8 - fresh, s.stale);
     for (let i = 0; i < fresh + stale; i++) {
-      const x = 131 + (i % 7) * 8;
-      const y = i < 7 ? 112 : 106;
+      const x = 130 + (i % 4) * 8;
+      const y = i < 4 ? 112 : 106;
       if (i < fresh) mini(x, y, r.top, r.base);
       else mini(x, y, '#a59a8a', '#7e7468');
     }
     const fc = gold ? COL.gold : '#c9e0f0';
-    rect(128, 102, 60, 1, fc);
+    rect(128, 102, 36, 1, fc);
     rect(128, 102, 1, 16, fc);
-    rect(187, 102, 1, 16, fc);
-    rect(128, 117, 60, 2, gold ? '#c99428' : COL.crust);
+    rect(163, 102, 1, 16, fc);
+    rect(128, 117, 36, 2, gold ? '#c99428' : COL.crust);
     rect(132, 104, 1, 1, '#ffffff'); rect(133, 105, 1, 1, '#ffffff');
-    if (gold) { rect(127, 101, 2, 2, '#fff1b8'); rect(186, 101, 2, 2, '#fff1b8'); }
+    if (gold) { rect(127, 101, 2, 2, '#fff1b8'); rect(162, 101, 2, 2, '#fff1b8'); }
   }
 
-  function drawCustomers(s, now, T) {
-    const step = Math.floor(T * 4) % 2;
-    const list = s.customers.slice().sort((a, b) => (a.st === 'out') - (b.st === 'out') || a.x - b.x);
-    for (const c of list) {
+  function drawLine(s) {
+    if (!s.cust.line1) return;
+    // velvet rope posts along the line
+    const posts = s.cust.line2 ? [207, 229, 251, 217] : [207, 229, 251];
+    posts.forEach((x, i) => {
+      const y = i === 3 ? 154 : 140;
+      rect(x - 1, y - 1, 4, 16, COL.ink);
+      rect(x, y, 2, 14, COL.gold);
+      rect(x - 1, y - 1, 4, 2, '#fff1b8');
+    });
+    rect(209, 143, 20, 2, '#b33a3a'); rect(231, 143, 20, 2, '#b33a3a');
+  }
+
+  function customerDrawer(s, c, now, step) {
+    return () => {
       const walking = c.st === 'in' || c.st === 'out';
       let name = c.look + (walking && step ? '_walk2' : '_walk1');
       if (c.mood) name = c.look + '_' + c.mood;
       else if (c.st === 'wait' && c.t > 30) name = c.look + '_sad'; // empty tray, getting worried
       const bob = c.mood && step ? 1 : 0; // mood faces have no walk frame, so bob them along
       const hop = ((vis.hops[c.id] || 0) > now ? 3 : 0) + bob;
-      const feet = c.st === 'out' ? 166 : 160;
-      spr(name, c.x, feet - 32 - hop);
-    }
+      const top = c.y - 32 - hop;
+      spr(name, c.x, top);
+      if (c.box && c.mood === 'happy') { // a party box of 6
+        rect(c.x + 11, top + 15, 9, 7, COL.ink);
+        rect(c.x + 12, top + 16, 7, 5, COL.pinkHi);
+        rect(c.x + 15, top + 16, 1, 5, COL.gold);
+      }
+    };
   }
 
-  function drawDaves(s, T, dt) {
+  // Dave wears his upgrades: a whisk in his pocket, red speed shoes, a second tray.
+  function daveDrawer(s, d, i, T) {
+    return () => {
+      const step = Math.floor(T * (s.ups.shoes ? 6 : 4)) % 2;
+      const frame = d.pause > 0 ? 'dave_walk1' : (step ? 'dave_walk2' : 'dave_walk1');
+      const x = Math.round(d.x);
+      const y = 178 - 32 - i;
+      const flip = d.dir < 0;
+      spr(frame, x, y, { flip });
+      const ov = (dx, dy, w, h, col) => rect(flip ? x + 20 - dx - w : x + dx, y + dy, w, h, col);
+      if (s.ups.whisk) { ov(5, 12, 3, 1, '#c0c4cc'); ov(6, 13, 1, 3, '#c0c4cc'); }
+      if (s.ups.shoes) {
+        const w1 = frame === 'dave_walk1';
+        ov(5, w1 ? 25 : 26, 3, 1, '#e04a4a'); ov(10, w1 ? 26 : 25, 3, 1, '#e04a4a');
+      }
+      if (s.ups.trays) {
+        ov(12, 14, 7, 1, '#9aa0ad'); ov(13, 13, 2, 1, '#6b3a26'); ov(16, 13, 2, 1, '#6b3a26');
+      }
+    };
+  }
+
+  function moveDaves(s, dt) {
     const want = Math.min(3, s.helpers.dave);
     while (vis.daves.length < want) vis.daves.push({ x: 60 + vis.daves.length * 50, dir: vis.daves.length % 2 ? -1 : 1, pause: 0 });
     vis.daves.length = want;
-    const step = Math.floor(T * 4) % 2;
+    const speed = s.ups.shoes ? 26 : 14;
     vis.daves.forEach((d, i) => {
       if (d.pause > 0) d.pause -= dt;
       else {
-        d.x += d.dir * dt * 14;
+        d.x += d.dir * dt * speed;
         if (d.x > 240) { d.x = 240; d.dir = -1; d.pause = 1 + i; }
         if (d.x < 58) { d.x = 58; d.dir = 1; d.pause = 1.5; }
       }
-      const name = d.pause > 0 ? 'dave_walk1' : (step ? 'dave_walk2' : 'dave_walk1');
-      spr(name, Math.round(d.x), 178 - 32 - i, { flip: d.dir < 0 });
     });
+  }
+
+  // Everyone on the shop floor, drawn back to front so nobody stands on anyone's head.
+  function drawFloorPeople(s, now, T, dt) {
+    const step = Math.floor(T * 4) % 2;
+    moveDaves(s, dt);
+    const items = s.customers.map(c => [c.y, customerDrawer(s, c, now, step)]);
+    vis.daves.forEach((d, i) => items.push([178 - i, daveDrawer(s, d, i, T)]));
+    items.push([182, () => drawCat(now, T, dt)]);
+    items.sort((a, b) => a[0] - b[0]).forEach(([, fn]) => fn());
   }
 
   function drawCat(now, T, dt) {
@@ -403,7 +533,8 @@
       c.x += c.dir * dt * 10;
       if ((c.dir > 0 && c.x >= c.target) || (c.dir < 0 && c.x <= c.target)) {
         c.mode = 'sit';
-        c.until = now + 3000 + Math.random() * 5000;
+        c.since = now;
+        c.until = now + 3000 + Math.random() * (Math.random() < 0.3 ? 15000 : 5000);
       }
     } else if (now > c.until) {
       c.target = 10 + Math.random() * 240;
@@ -418,6 +549,10 @@
       const wag = Math.floor(T * 3) % 2;
       const tx = c.dir < 0 ? x + 19 - wag : x + 1 + wag;
       rect(tx, y + 6 + wag, 2, 2, '#7a4a2a');
+      if (now - (c.since || now) > 6000 && c.bubble < now) { // a little cat nap
+        const zt = ((now - c.since) / 1000) % 2;
+        text('z', x + (c.dir < 0 ? 4 : 17) + zt * 2, y - 2 - zt * 5, { size: 10 + Math.floor(zt) * 3, color: COL.cream });
+      }
     } else {
       spr(Math.floor(T * 6) % 2 ? 'fudge_walk2' : 'fudge_walk1', x, y, { flip: c.dir < 0 });
     }
@@ -439,7 +574,7 @@
   function drawBubbles(s, now) {
     for (const c of s.customers) {
       const b = vis.bubbles[c.id];
-      if (b && b.until > now) bubble(b.text, c.x + 10, (c.st === 'out' ? 166 : 160) - 46, b.col);
+      if (b && b.until > now) bubble(b.text, c.x + 10, c.y - 46, b.col);
     }
   }
 
@@ -518,14 +653,14 @@
       drawSign(s, T);
       spr('grandma_portrait', 66, 36);
       drawChalkboard(s);
+      drawWallExtras(s, T);
       drawOven(s, T);
       drawDoor(s);
       drawFloor();
       drawTable(s);
       drawCounter(s, now);
-      drawCustomers(s, now, T);
-      drawDaves(s, T, dt);
-      drawCat(now, T, dt);
+      drawLine(s);
+      drawFloorPeople(s, now, T, dt);
       drawLamps(s, T, evening && s.open);
 
       if (!s.fix.sweep) {
@@ -578,9 +713,20 @@
           vis.hops[e.id] = now + 220;
           break;
         case 'sale':
-          say('+$' + e.amt, 1100, '#2a7a2a');
+          say('+$' + BB.fmt(e.amt), 1100, '#2a7a2a');
           vis.hops[e.id] = now + 200;
-          if (cust) vis.hearts.push({ x: P(cust.x + 6), y: P(112), life: 0.9 });
+          if (cust) vis.hearts.push({ x: P(cust.x + 6), y: P(cust.y - 48), life: 0.9 });
+          if (e.tip) {
+            floatText('+$' + BB.fmt(e.tip) + ' TIP', P(170), P(100), COL.gold, 12);
+            burst(P(170), P(106), 5, [COL.gold, '#fff1b8'], { speed: 80, up: 120, size: 6 });
+          }
+          break;
+        case 'deliver':
+          floatText('+$' + BB.fmt(e.amt), P(178), P(30), '#8fe0b0', 14);
+          break;
+        case 'parade':
+          burst(P(e.x + 16), P(e.y + 16), 30, [COL.pinkHi, COL.gold, '#ffffff'], { speed: 260, up: 60, g: 200, life: 1 });
+          floatText('PARADE!', P(e.x + 16), P(e.y + 8), COL.pinkHi, 16);
           break;
         case 'hello':
           say('Hello?', 2500);

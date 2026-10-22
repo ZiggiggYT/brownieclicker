@@ -227,7 +227,7 @@
   function closeShop(s) {
     s.open = false;
     s.nightT = D.NIGHT_TICKS;
-    const record = s.day > 1 && s.dayEarned > s.bestDay;
+    const record = s.bestDay > 0 && s.dayEarned > s.bestDay; // the first day just sets the bar
     s.bestDay = Math.max(s.bestDay, s.dayEarned);
     s.lastDay = { day: s.day, sold: s.daySold, earned: s.dayEarned, tips: s.dayTips, record };
     s.stale += s.fresh; // unsold fresh brownies go stale overnight
