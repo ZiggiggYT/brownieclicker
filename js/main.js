@@ -39,27 +39,13 @@
     } catch (e) { /* storage full or blocked: keep playing */ }
   }
 
-  // Merge a saved state onto a fresh one so saves from older versions pick up new fields.
-  function restore(saved) {
-    const s = BB.newState(saved.seed);
-    for (const k of Object.keys(saved)) {
-      if (s[k] && typeof s[k] === 'object' && !Array.isArray(s[k]) && saved[k] && typeof saved[k] === 'object') {
-        Object.assign(s[k], saved[k]);
-      } else {
-        s[k] = saved[k];
-      }
-    }
-    s.fx = [];
-    return s;
-  }
-
   function load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return null;
       const data = JSON.parse(raw);
-      if (!data || !data.state || data.state.v !== 1) return null;
-      return { state: restore(data.state), savedAt: data.savedAt || Date.now() };
+      if (!data || !data.state || !(data.state.v >= 1)) return null;
+      return { state: BB.migrate(data.state), savedAt: data.savedAt || Date.now() };
     } catch (e) {
       return null;
     }
@@ -210,7 +196,7 @@
     BB.ui.init(img, {
       state: () => G.s,
       buy(kind, id) {
-        const fn = { helper: 'buyHelper', fix: 'buyFix', recipe: 'unlockRecipe' }[kind];
+        const fn = { helper: 'buyHelper', up: 'buyUpgrade', cust: 'buyCust', fix: 'buyFix', recipe: 'unlockRecipe' }[kind];
         if (!act(fn, id)) BB.audio.play('click');
       },
       give: () => act('give'),

@@ -10,8 +10,9 @@ BB.DATA = {
   PRICE_GROWTH: 1.2,
 
   STALE_EVERY: 900,         // 90 s (doubled by the Display Case)
-  ORDER_GAP: 300,           // ~30 s between special orders
+  ORDER_GAP: 600,           // ~60 s between special orders
   ORDER_TIME: 900,          // 90 s to fill one
+  ORDER_STARS: 0.1,
   GOLDEN_LIFE: 120,         // golden brownie floats for 12 s
   RUSH_TICKS: 150,          // BROWNIE RUSH lasts 15 s
 
@@ -19,18 +20,63 @@ BB.DATA = {
   MIN_STARS: 0.5,
   MAX_STARS: 5,
 
+  // Workers. `rate` bakes brownies a second, `sells` delivers them. Each worker has
+  // upgrades that show up under it in the HELPERS tab once you own one; `needs` is
+  // how many of that worker you need first and `mult` multiplies its output.
   helpers: [
     { id: 'nap', name: 'Stop Napping', line: '+1 brownie per click', price: 15, repeat: true, icon: 'icon_pillow',
-      banner: 'NO MORE NAPS!' },
+      banner: 'NO MORE NAPS!', who: 'YOU', upgrades: [
+        { id: 'mitts', name: 'Oven Mitts', line: 'Your clicks bake 2x', price: 120, needs: 1, mult: 2, icon: 'icon_mitts', banner: 'COZY OVEN MITTS!' },
+        { id: 'pin', name: "Grandma's Rolling Pin", line: 'Your clicks bake 2x', price: 2500, needs: 5, mult: 2, icon: 'icon_rollingpin', banner: "GRANDMA'S ROLLING PIN!" },
+        { id: 'spatula', name: 'Golden Spatula', line: 'Your clicks bake 3x', price: 150000, needs: 15, mult: 3, icon: 'icon_spatula', banner: 'THE GOLDEN SPATULA!' },
+      ] },
     { id: 'coffee', name: 'Morning Coffee', line: 'Bakes 0.5 brownies a second', price: 40, repeat: true, rate: 0.5,
-      icon: 'icon_coffee', banner: 'COFFEE IS BREWING!' },
+      icon: 'icon_coffee', banner: 'COFFEE IS BREWING!', who: 'COFFEE', upgrades: [
+        { id: 'espresso', name: 'Espresso', line: 'Coffee bakes 2x faster', price: 350, needs: 1, mult: 2, icon: 'icon_espresso', banner: 'ESPRESSO TIME!' },
+        { id: 'fancymug', name: 'Fancy Mug', line: 'Coffee bakes 2x faster', price: 3000, needs: 5, mult: 2, icon: 'icon_fancymug', banner: 'SO FANCY!' },
+        { id: 'pot', name: 'Bottomless Pot', line: 'Coffee bakes 2x faster', price: 80000, needs: 15, mult: 2, icon: 'icon_coffeepot', banner: 'BOTTOMLESS COFFEE!' },
+      ] },
     { id: 'dave', name: 'Hire Dave', line: 'Bakes 1 brownie a second', price: 300, repeat: true, rate: 1,
-      icon: 'dave_walk1', banner: 'DAVE JOINED THE TEAM!' },
+      icon: 'dave_walk1', banner: 'DAVE JOINED THE TEAM!', who: 'DAVE', upgrades: [
+        { id: 'whisk', name: 'Better Whisk', line: 'Daves bake 2x faster', price: 1800, needs: 1, mult: 2, icon: 'icon_whisk', banner: 'WHISK WHISK WHISK!' },
+        { id: 'shoes', name: 'Speed Shoes', line: 'Daves zoom around. 2x faster', price: 9000, needs: 3, mult: 2, icon: 'icon_shoes', banner: 'ZOOM ZOOM, DAVE!' },
+        { id: 'trays', name: 'Double Trays', line: 'Daves carry 2 trays. 2x faster', price: 90000, needs: 8, mult: 2, icon: 'icon_trays', banner: 'DOUBLE TRAYS!' },
+      ] },
     { id: 'linda', name: 'Hire Linda', line: 'Customers buy faster', price: 800, repeat: false,
-      icon: 'linda_happy', banner: 'LINDA JOINED THE TEAM!' },
+      icon: 'linda_happy', banner: 'LINDA JOINED THE TEAM!', who: 'LINDA', upgrades: [
+        { id: 'smile', name: 'Friendly Smile', line: 'More stars, and some buy 1 extra', price: 2500, needs: 1, icon: 'icon_smile', banner: 'WHAT A SMILE!' },
+        { id: 'register', name: 'Speedy Register', line: 'Checkout is instant. Ka-ching!', price: 7000, needs: 1, icon: 'icon_register', banner: 'KA-CHING!' },
+      ] },
+    { id: 'bike', name: 'Delivery Bike', line: 'Delivers 0.5 brownies a second around town', price: 1500, repeat: true, sells: 0.5,
+      icon: 'icon_bike', banner: 'DELIVERIES ARE ROLLING!', who: 'BIKES', upgrades: [
+        { id: 'basket', name: 'Cargo Basket', line: 'Bikes deliver 2x more', price: 12000, needs: 3, mult: 2, icon: 'icon_basket', banner: 'BIG BASKETS!' },
+        { id: 'ebike', name: 'Electric Bikes', line: 'Bikes deliver 2x more', price: 150000, needs: 8, mult: 2, icon: 'icon_ebike', banner: 'ELECTRIC BIKES! BZZT!' },
+      ] },
     { id: 'oven', name: 'Another Oven', line: 'Bakes 4 brownies a second', price: 2500, repeat: true, rate: 4,
-      icon: 'icon_oven', banner: 'ANOTHER OVEN FIRED UP!' },
+      icon: 'icon_oven', banner: 'ANOTHER OVEN FIRED UP!', who: 'OVENS', upgrades: [
+        { id: 'fire', name: 'Hotter Fire', line: 'Ovens bake 2x faster', price: 20000, needs: 1, mult: 2, icon: 'icon_fire', banner: 'HOTTER FIRE!' },
+        { id: 'pans', name: 'Bigger Pans', line: 'Ovens bake 2x faster', price: 200000, needs: 6, mult: 2, icon: 'icon_pans', banner: 'BIGGER PANS!' },
+        { id: 'magic', name: 'Magic Flame', line: 'Ovens bake 3x faster', price: 2000000, needs: 12, mult: 3, icon: 'icon_magicflame', banner: 'A MAGIC FLAME?!' },
+      ] },
   ],
+
+  // Things that bring in more (and hungrier) customers. Shown in the CUSTOMERS tab.
+  // visits: +x customers, queue: line length, extra: brownies per customer.
+  customerUps: [
+    { id: 'window', name: 'Window Display', line: '+25% customers', price: 150, visits: 0.25, icon: 'icon_display', banner: 'WHAT A WINDOW!' },
+    { id: 'samples', name: 'Free Samples', line: 'Every customer buys 1 more', price: 450, extra: 1, icon: 'icon_samples', banner: 'FREE SAMPLES! YUM!' },
+    { id: 'flyers', name: 'Flyers Around Town', line: '+30% customers', price: 900, visits: 0.3, icon: 'icon_flyer', banner: 'FLYERS EVERYWHERE!' },
+    { id: 'line1', name: 'Bigger Line', line: 'Room for 4 people in line', price: 1200, queue: 4, icon: 'icon_line', banner: 'MORE ROOM IN LINE!' },
+    { id: 'tipjar', name: 'Tip Jar', line: '1 in 4 customers leaves a tip', price: 2000, icon: 'icon_tipjar', banner: 'TIPS WELCOME!' },
+    { id: 'news', name: 'Newspaper Ad', line: '+50% customers', price: 8000, visits: 0.5, icon: 'icon_news', banner: 'YOU MADE THE NEWS!' },
+    { id: 'line2', name: 'Even Bigger Line', line: 'Room for 5 people in line', price: 10000, queue: 5, after: 'line1', icon: 'icon_line', banner: 'THE LINE GOES ON!' },
+    { id: 'rush', name: 'Rush Hour', line: 'Lunch rush! 3x customers 11 AM to 1 PM', price: 20000, icon: 'icon_rush', banner: 'LUNCH RUSH IS ON!' },
+    { id: 'party', name: 'Party Boxes', line: 'Some customers buy a box of 6', price: 45000, icon: 'icon_party', banner: 'PARTY BOXES!' },
+    { id: 'tv', name: 'TV Commercial', line: '+100% customers', price: 400000, visits: 1, icon: 'icon_tv', banner: "YOU'RE ON TV!" },
+  ],
+  TIP_CHANCE: 0.25,
+  PARTY_CHANCE: 0.12,
+  LUNCH: [0.25, 5 / 12], // 11 AM to 1 PM as a fraction of the day
 
   fixes: [
     { id: 'sweep', name: 'Sweep the Dust', line: 'Bye bye cobwebs. +0.5 star', price: 50, stars: 0.5,
@@ -67,27 +113,41 @@ BB.DATA = {
     { who: 'Your old boss', look: 'boss_walk1', qty: 100 },
   ],
 
-  // Goals run one at a time. `have` returns [current, target] for the progress bar.
+  // Goals run one at a time, in this order. Ids are stored in the save, so add new
+  // goals anywhere but never rename an id. `have` returns [current, target].
   goals: [
-    { text: 'Bake 25 brownies', reward: 15, have: s => [s.totalBaked, 25] },
-    { text: 'Buy Morning Coffee', reward: 20, have: s => [s.helpers.coffee, 1] },
-    { text: 'Sell 50 brownies', reward: 30, have: s => [s.totalSold, 50] },
-    { text: 'Sweep the dust', reward: 40, have: s => [s.fix.sweep ? 1 : 0, 1] },
-    { text: 'Pet Fudge the cat', reward: 10, have: s => [s.flags.pet ? 1 : 0, 1] },
-    { text: 'Catch a golden brownie', reward: 50, have: s => [s.flags.golden ? 1 : 0, 1] },
-    { text: 'Hire Dave', reward: 100, have: s => [s.helpers.dave, 1] },
-    { text: 'Reach 1 star', reward: 120, have: s => [s.stars, 1] },
-    { text: 'Unlock Blondies', reward: 200, have: s => [s.recipes.blondie ? 1 : 0, 1] },
-    { text: 'Fix the sign', reward: 250, have: s => [s.fix.sign ? 1 : 0, 1] },
-    { text: 'Sell 1,000 brownies', reward: 500, have: s => [s.totalSold, 1000] },
-    { text: 'Hire Linda', reward: 600, have: s => [s.helpers.linda, 1] },
-    { text: 'Reach 2 stars', reward: 800, have: s => [s.stars, 2] },
-    { text: 'Unlock Mint Chip', reward: 1500, have: s => [s.recipes.mint ? 1 : 0, 1] },
-    { text: 'Sell 10,000 brownies', reward: 4000, have: s => [s.totalSold, 10000] },
-    { text: 'Reach 3 stars', reward: 5000, have: s => [s.stars, 3] },
-    { text: 'Unlock Peanut Butter', reward: 8000, have: s => [s.recipes.pb ? 1 : 0, 1] },
-    { text: 'Reach 5 stars', reward: 50000, have: s => [s.stars, 5] },
-    { text: 'Find the Golden Brownie', reward: 100000, have: s => [s.recipes.golden ? 1 : 0, 1] },
+    { id: 'bake25', text: 'Bake 25 brownies', reward: 15, have: s => [s.totalBaked, 25] },
+    { id: 'coffee', text: 'Buy Morning Coffee', reward: 20, have: s => [s.helpers.coffee, 1] },
+    { id: 'sell50', text: 'Sell 50 brownies', reward: 30, have: s => [s.totalSold, 50] },
+    { id: 'sweep', text: 'Sweep the dust', reward: 40, have: s => [s.fix.sweep ? 1 : 0, 1] },
+    { id: 'pet', text: 'Pet Fudge the cat', reward: 10, have: s => [s.flags.pet ? 1 : 0, 1] },
+    { id: 'window', text: 'Buy a Window Display', reward: 40, have: s => [s.cust.window ? 1 : 0, 1] },
+    { id: 'golden', text: 'Catch a golden brownie', reward: 50, have: s => [s.flags.golden ? 1 : 0, 1] },
+    { id: 'mitts', text: 'Get Oven Mitts', reward: 60, have: s => [s.ups.mitts ? 1 : 0, 1] },
+    { id: 'dave', text: 'Hire Dave', reward: 100, have: s => [s.helpers.dave, 1] },
+    { id: 'star1', text: 'Reach 1 star', reward: 120, have: s => [s.stars, 1] },
+    { id: 'blondie', text: 'Unlock Blondies', reward: 200, have: s => [s.recipes.blondie ? 1 : 0, 1] },
+    { id: 'sign', text: 'Fix the sign', reward: 250, have: s => [s.fix.sign ? 1 : 0, 1] },
+    { id: 'bike', text: 'Get a Delivery Bike', reward: 300, have: s => [s.helpers.bike, 1] },
+    { id: 'sell1k', text: 'Sell 1,000 brownies', reward: 500, have: s => [s.totalSold, 1000] },
+    { id: 'linda', text: 'Hire Linda', reward: 600, have: s => [s.helpers.linda, 1] },
+    { id: 'tipjar', text: 'Put out a Tip Jar', reward: 700, have: s => [s.cust.tipjar ? 1 : 0, 1] },
+    { id: 'star2', text: 'Reach 2 stars', reward: 800, have: s => [s.stars, 2] },
+    { id: 'order5', text: 'Finish 5 special orders', reward: 1000, have: s => [s.ordersDone || 0, 5] },
+    { id: 'mint', text: 'Unlock Mint Chip', reward: 1500, have: s => [s.recipes.mint ? 1 : 0, 1] },
+    { id: 'shoes', text: 'Get Speed Shoes for Dave', reward: 2500, have: s => [s.ups.shoes ? 1 : 0, 1] },
+    { id: 'sell10k', text: 'Sell 10,000 brownies', reward: 4000, have: s => [s.totalSold, 10000] },
+    { id: 'star3', text: 'Reach 3 stars', reward: 5000, have: s => [s.stars, 3] },
+    { id: 'pb', text: 'Unlock Peanut Butter', reward: 8000, have: s => [s.recipes.pb ? 1 : 0, 1] },
+    { id: 'rush', text: 'Start a Lunch Rush', reward: 10000, have: s => [s.cust.rush ? 1 : 0, 1] },
+    { id: 'caramel', text: 'Unlock Salted Caramel', reward: 20000, have: s => [s.recipes.caramel ? 1 : 0, 1] },
+    { id: 'star5', text: 'Reach 5 stars', reward: 50000, have: s => [s.stars, 5] },
+    { id: 'goldrecipe', text: 'Find the Golden Brownie', reward: 100000, have: s => [s.recipes.golden ? 1 : 0, 1] },
+    { id: 'sell100k', text: 'Sell 100,000 brownies', reward: 150000, have: s => [s.totalSold, 100000] },
+    { id: 'tv', text: 'Get on TV', reward: 200000, have: s => [s.cust.tv ? 1 : 0, 1] },
   ],
+  // The first 19 goals of v1, in order: a v1 save's goal index means these are done.
+  V1_GOALS: ['bake25', 'coffee', 'sell50', 'sweep', 'pet', 'golden', 'dave', 'star1', 'blondie', 'sign', 'sell1k',
+    'linda', 'star2', 'mint', 'sell10k', 'star3', 'pb', 'star5', 'goldrecipe'],
   ALL_GOALS_DONE: "All goals done. You're a master baker!",
 };
