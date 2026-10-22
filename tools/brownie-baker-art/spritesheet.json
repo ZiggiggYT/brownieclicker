@@ -1,0 +1,555 @@
+{
+ "image": "spritesheet.png",
+ "scale": 1,
+ "frames": {
+  "baker_idle": {
+   "x": 0,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "baker_bake": {
+   "x": 22,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "baker_walk1": {
+   "x": 44,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "baker_walk2": {
+   "x": 66,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "you_office": {
+   "x": 88,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "you_office_sleep": {
+   "x": 110,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "you_office_sad": {
+   "x": 132,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "dave_walk1": {
+   "x": 154,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "dave_walk2": {
+   "x": 176,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "linda_idle": {
+   "x": 198,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "linda_happy": {
+   "x": 220,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "boss_angry": {
+   "x": 242,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "boss_walk1": {
+   "x": 264,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "characters"
+  },
+  "mo_walk1": {
+   "x": 286,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "mo_walk2": {
+   "x": 308,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "mo_happy": {
+   "x": 330,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "mo_sad": {
+   "x": 352,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "pip_walk1": {
+   "x": 374,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "pip_walk2": {
+   "x": 396,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "pip_happy": {
+   "x": 418,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "pip_sad": {
+   "x": 440,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "rose_walk1": {
+   "x": 462,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "rose_walk2": {
+   "x": 484,
+   "y": 0,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "rose_happy": {
+   "x": 0,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "rose_sad": {
+   "x": 22,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "gus_walk1": {
+   "x": 44,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "gus_walk2": {
+   "x": 66,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "gus_happy": {
+   "x": 88,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "gus_sad": {
+   "x": 110,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "jen_walk1": {
+   "x": 132,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "jen_walk2": {
+   "x": 154,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "jen_happy": {
+   "x": 176,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "jen_sad": {
+   "x": 198,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "critic_walk1": {
+   "x": 220,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "critic_walk2": {
+   "x": 242,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "critic_happy": {
+   "x": 264,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "critic_sad": {
+   "x": 286,
+   "y": 34,
+   "w": 20,
+   "h": 32,
+   "group": "customers"
+  },
+  "fudge_walk1": {
+   "x": 308,
+   "y": 34,
+   "w": 22,
+   "h": 16,
+   "group": "pets"
+  },
+  "fudge_walk2": {
+   "x": 332,
+   "y": 34,
+   "w": 22,
+   "h": 16,
+   "group": "pets"
+  },
+  "fudge_sit": {
+   "x": 356,
+   "y": 34,
+   "w": 22,
+   "h": 16,
+   "group": "pets"
+  },
+  "brownie_classic": {
+   "x": 380,
+   "y": 34,
+   "w": 20,
+   "h": 18,
+   "group": "brownies"
+  },
+  "brownie_blondie": {
+   "x": 402,
+   "y": 34,
+   "w": 20,
+   "h": 18,
+   "group": "brownies"
+  },
+  "brownie_mint": {
+   "x": 424,
+   "y": 34,
+   "w": 20,
+   "h": 18,
+   "group": "brownies"
+  },
+  "brownie_pb": {
+   "x": 446,
+   "y": 34,
+   "w": 20,
+   "h": 18,
+   "group": "brownies"
+  },
+  "brownie_caramel": {
+   "x": 468,
+   "y": 34,
+   "w": 20,
+   "h": 18,
+   "group": "brownies"
+  },
+  "brownie_golden": {
+   "x": 490,
+   "y": 34,
+   "w": 20,
+   "h": 18,
+   "group": "brownies"
+  },
+  "brownie_stale": {
+   "x": 0,
+   "y": 68,
+   "w": 20,
+   "h": 18,
+   "group": "brownies"
+  },
+  "golden_sparkle": {
+   "x": 22,
+   "y": 68,
+   "w": 32,
+   "h": 32,
+   "group": "brownies"
+  },
+  "icon_pillow": {
+   "x": 56,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_coffee": {
+   "x": 76,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_oven": {
+   "x": 96,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_broom": {
+   "x": 116,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_sign": {
+   "x": 136,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_paint": {
+   "x": 156,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_case": {
+   "x": 176,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_table": {
+   "x": 196,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_recipe": {
+   "x": 216,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_clock": {
+   "x": 236,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_sun": {
+   "x": 256,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "icon_moon": {
+   "x": 276,
+   "y": 68,
+   "w": 18,
+   "h": 18,
+   "group": "icons"
+  },
+  "coin": {
+   "x": 296,
+   "y": 68,
+   "w": 12,
+   "h": 12,
+   "group": "ui"
+  },
+  "star": {
+   "x": 310,
+   "y": 68,
+   "w": 13,
+   "h": 13,
+   "group": "ui"
+  },
+  "star_half": {
+   "x": 325,
+   "y": 68,
+   "w": 13,
+   "h": 13,
+   "group": "ui"
+  },
+  "star_empty": {
+   "x": 340,
+   "y": 68,
+   "w": 13,
+   "h": 13,
+   "group": "ui"
+  },
+  "heart": {
+   "x": 355,
+   "y": 68,
+   "w": 11,
+   "h": 10,
+   "group": "ui"
+  },
+  "oven": {
+   "x": 368,
+   "y": 68,
+   "w": 48,
+   "h": 64,
+   "group": "props"
+  },
+  "counter": {
+   "x": 418,
+   "y": 68,
+   "w": 64,
+   "h": 32,
+   "group": "props"
+  },
+  "door": {
+   "x": 0,
+   "y": 134,
+   "w": 32,
+   "h": 64,
+   "group": "props"
+  },
+  "window": {
+   "x": 34,
+   "y": 134,
+   "w": 56,
+   "h": 44,
+   "group": "props"
+  },
+  "lamp_on": {
+   "x": 92,
+   "y": 134,
+   "w": 16,
+   "h": 28,
+   "group": "props"
+  },
+  "lamp_off": {
+   "x": 110,
+   "y": 134,
+   "w": 16,
+   "h": 28,
+   "group": "props"
+  },
+  "grandma_portrait": {
+   "x": 128,
+   "y": 134,
+   "w": 22,
+   "h": 26,
+   "group": "props"
+  },
+  "chalkboard": {
+   "x": 152,
+   "y": 134,
+   "w": 44,
+   "h": 28,
+   "group": "props"
+  }
+ },
+ "animations": {
+  "baker_walk": [
+   "baker_walk1",
+   "baker_walk2"
+  ],
+  "dave_walk": [
+   "dave_walk1",
+   "dave_walk2"
+  ],
+  "fudge_walk": [
+   "fudge_walk1",
+   "fudge_walk2"
+  ],
+  "mo_walk": [
+   "mo_walk1",
+   "mo_walk2"
+  ],
+  "pip_walk": [
+   "pip_walk1",
+   "pip_walk2"
+  ],
+  "rose_walk": [
+   "rose_walk1",
+   "rose_walk2"
+  ],
+  "gus_walk": [
+   "gus_walk1",
+   "gus_walk2"
+  ],
+  "jen_walk": [
+   "jen_walk1",
+   "jen_walk2"
+  ],
+  "critic_walk": [
+   "critic_walk1",
+   "critic_walk2"
+  ]
+ }
+}
