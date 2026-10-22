@@ -58,7 +58,20 @@ BB.DATA = {
         { id: 'pans', name: 'Bigger Pans', line: 'Ovens bake 2x faster', price: 200000, needs: 6, mult: 2, icon: 'icon_pans', banner: 'BIGGER PANS!' },
         { id: 'magic', name: 'Magic Flame', line: 'Ovens bake 3x faster', price: 2000000, needs: 12, mult: 3, icon: 'icon_magicflame', banner: 'A MAGIC FLAME?!' },
       ] },
+    { id: 'robot', name: 'Brownie Robot', line: 'Bakes 20 brownies a second. Beep!', price: 60000, repeat: true, rate: 20, after: 'backroom',
+      icon: 'robot1', banner: 'BEEP BOOP! A ROBOT!', unit: 'ROBOTS', upgrades: [
+        { id: 'oil', name: 'Oil Change', line: 'Robots bake 2x faster', price: 450000, needs: 3, mult: 2, icon: 'icon_oil', banner: 'SMOOTH ROBOTS!' },
+        { id: 'turbo', name: 'Turbo Mode', line: 'Robots bake 3x faster', price: 5000000, needs: 8, mult: 3, icon: 'icon_turbo', banner: 'TURBO MODE!' },
+      ] },
+    { id: 'truck', name: 'Food Truck', line: 'Sells 5 brownies a second all over town', price: 120000, repeat: true, sells: 5, after: 'upstairs',
+      icon: 'icon_truck', banner: 'FOOD TRUCK ON THE ROAD!', unit: 'TRUCKS', upgrades: [
+        { id: 'bigtruck', name: 'Bigger Truck', line: 'Trucks sell 2x more', price: 900000, needs: 3, mult: 2, icon: 'icon_bigtruck', banner: 'BIGGER TRUCKS!' },
+        { id: 'song', name: 'Truck Song', line: 'A catchy tune! Trucks sell 2x more', price: 7000000, needs: 10, mult: 2, icon: 'icon_music', banner: 'DING DING DING!' },
+      ] },
   ],
+  // How many of each repeatable worker fit in the kitchen. Kitchen expansions
+  // in FIX UP raise it (and unlock the Robot, Food Truck and late recipes).
+  HELPER_CAP: 10,
 
   // Things that bring in more (and hungrier) customers. Shown in the CUSTOMERS tab.
   // visits: +x customers, queue: line length, extra: brownies per customer.
@@ -73,6 +86,9 @@ BB.DATA = {
     { id: 'rush', name: 'Rush Hour', line: 'Lunch rush! 3x customers 11 AM to 1 PM', price: 20000, icon: 'icon_rush', banner: 'LUNCH RUSH IS ON!' },
     { id: 'party', name: 'Party Boxes', line: 'Some customers buy a box of 6', price: 45000, icon: 'icon_party', banner: 'PARTY BOXES!' },
     { id: 'tv', name: 'TV Commercial', line: '+100% customers', price: 400000, visits: 1, icon: 'icon_tv', banner: "YOU'RE ON TV!" },
+    { id: 'billboard', name: 'Giant Billboard', line: '+100% customers', price: 1500000, visits: 1, icon: 'icon_billboard', banner: 'BIGGEST BILLBOARD EVER!' },
+    { id: 'blogger', name: 'Famous Food Blogger', line: 'Every customer buys 2 more', price: 4000000, extra: 2, icon: 'icon_blogger', banner: 'YOU WENT VIRAL!' },
+    { id: 'fanclub', name: 'Brownie Fan Club', line: 'Half of all customers leave a tip', price: 10000000, tipChance: 0.5, icon: 'icon_fanclub', banner: 'BROWNIE FAN CLUB!' },
   ],
   TIP_CHANCE: 0.25,
   PARTY_CHANCE: 0.12,
@@ -89,6 +105,20 @@ BB.DATA = {
       icon: 'icon_paint', banner: 'FRESH NEW WALLS!' },
     { id: 'tables', name: 'Tables & Chairs', line: 'A place to sit. Even more customers', price: 3000,
       icon: 'icon_table', banner: 'TABLES & CHAIRS ARE IN!' },
+    { id: 'backroom', name: 'Back Room', line: 'Room for 25 of each worker. Robots!', price: 6000, cap: 25,
+      icon: 'icon_backroom', banner: 'THE BAKERY GOT BIGGER!' },
+    { id: 'neon', name: 'Neon Sign', line: 'It glows! +20% customers', price: 15000, visits: 0.2,
+      icon: 'icon_neon', banner: 'SO SHINY!' },
+    { id: 'floor', name: 'Checkered Floor', line: 'Fancy floor. +0.25 star', price: 50000, stars: 0.25,
+      icon: 'icon_floor', banner: 'FANCY FLOOR!' },
+    { id: 'upstairs', name: 'Second Floor', line: 'Room for 60 of each worker. Food Trucks!', price: 150000, cap: 60,
+      icon: 'icon_upstairs', banner: 'A WHOLE SECOND FLOOR!' },
+    { id: 'fountain', name: 'Chocolate Fountain', line: 'Golden brownies show up 2x as often', price: 400000, golden: 2,
+      icon: 'icon_fountain', banner: 'CHOCOLATE FOUNTAIN!' },
+    { id: 'factory', name: 'Brownie Factory', line: 'Room for 150 of each worker', price: 2500000, cap: 150,
+      icon: 'icon_factory', banner: 'BROWNIE FACTORY!' },
+    { id: 'frame', name: 'Golden Grandma', line: 'Grandma is proud! All baking 1.5x', price: 8000000, bake: 1.5,
+      icon: 'icon_frame', banner: 'GRANDMA IS SO PROUD!' },
   ],
 
   // top/base colours are used for the little tray brownies.
@@ -99,6 +129,10 @@ BB.DATA = {
     { id: 'pb', name: 'Peanut Butter', short: 'PEANUT BUTTER', price: 5, cost: 8000, stars: 3, sprite: 'brownie_pb', top: '#e0b070', base: '#5a3020' },
     { id: 'caramel', name: 'Salted Caramel', short: 'SALTED CARAMEL', price: 8, cost: 25000, stars: 4, sprite: 'brownie_caramel', top: '#f0a030', base: '#5a3020' },
     { id: 'golden', name: 'Golden Brownie', hiddenName: '??? (missing page)', short: 'GOLDEN BROWNIE', price: 25, cost: 150000, stars: 5, sprite: 'brownie_golden', top: '#f5c94a', base: '#d9a020' },
+    // `after`: needs that kitchen expansion first
+    { id: 'smores', name: "S'mores Brownie", short: "S'MORES", price: 40, cost: 700000, stars: 5, after: 'upstairs', sprite: 'brownie_smores', top: '#fbf6ec', base: '#5a3020' },
+    { id: 'rainbow', name: 'Rainbow Brownie', short: 'RAINBOW', price: 65, cost: 4000000, stars: 5, after: 'factory', sprite: 'brownie_rainbow', top: '#ff6a6a', base: '#5a3020' },
+    { id: 'galaxy', name: 'Galaxy Brownie', short: 'GALAXY', price: 100, cost: 15000000, stars: 5, after: 'factory', sprite: 'brownie_galaxy', top: '#4a2a7a', base: '#2a1a4a' },
   ],
 
   // Walk-in customers (sprite prefixes from the art kit).
@@ -132,6 +166,7 @@ BB.DATA = {
     { id: 'sell1k', text: 'Sell 1,000 brownies', reward: 500, have: s => [s.totalSold, 1000] },
     { id: 'linda', text: 'Hire Linda', reward: 600, have: s => [s.helpers.linda, 1] },
     { id: 'tipjar', text: 'Put out a Tip Jar', reward: 700, have: s => [s.cust.tipjar ? 1 : 0, 1] },
+    { id: 'backroom', text: 'Build the Back Room', reward: 1500, have: s => [s.fix.backroom ? 1 : 0, 1] },
     { id: 'star2', text: 'Reach 2 stars', reward: 800, have: s => [s.stars, 2] },
     { id: 'order5', text: 'Finish 5 special orders', reward: 1000, have: s => [s.ordersDone || 0, 5] },
     { id: 'mint', text: 'Unlock Mint Chip', reward: 1500, have: s => [s.recipes.mint ? 1 : 0, 1] },
@@ -141,13 +176,35 @@ BB.DATA = {
     { id: 'pb', text: 'Unlock Peanut Butter', reward: 8000, have: s => [s.recipes.pb ? 1 : 0, 1] },
     { id: 'rush', text: 'Start a Lunch Rush', reward: 10000, have: s => [s.cust.rush ? 1 : 0, 1] },
     { id: 'caramel', text: 'Unlock Salted Caramel', reward: 20000, have: s => [s.recipes.caramel ? 1 : 0, 1] },
+    { id: 'robot', text: 'Get a Brownie Robot', reward: 30000, have: s => [s.helpers.robot, 1] },
     { id: 'star5', text: 'Reach 5 stars', reward: 50000, have: s => [s.stars, 5] },
     { id: 'goldrecipe', text: 'Find the Golden Brownie', reward: 100000, have: s => [s.recipes.golden ? 1 : 0, 1] },
+    { id: 'upstairs', text: 'Build the Second Floor', reward: 100000, have: s => [s.fix.upstairs ? 1 : 0, 1] },
     { id: 'sell100k', text: 'Sell 100,000 brownies', reward: 150000, have: s => [s.totalSold, 100000] },
+    { id: 'truck', text: 'Get a Food Truck', reward: 150000, have: s => [s.helpers.truck, 1] },
     { id: 'tv', text: 'Get on TV', reward: 200000, have: s => [s.cust.tv ? 1 : 0, 1] },
+    { id: 'smores', text: "Unlock S'mores Brownies", reward: 300000, have: s => [s.recipes.smores ? 1 : 0, 1] },
+    { id: 'mega75', text: 'Fill the MegaMuffin bar to 75%', reward: 500000, have: s => [BB.megaProgress(s), 0.75] },
+    { id: 'factory', text: 'Build the Brownie Factory', reward: 1000000, have: s => [s.fix.factory ? 1 : 0, 1] },
+    { id: 'rainbow', text: 'Unlock Rainbow Brownies', reward: 2000000, have: s => [s.recipes.rainbow ? 1 : 0, 1] },
+    { id: 'galaxy', text: 'Unlock Galaxy Brownies', reward: 5000000, have: s => [s.recipes.galaxy ? 1 : 0, 1] },
+    { id: 'beat', text: 'Beat MegaMuffin!', reward: 0, have: s => [s.beaten ? 1 : 0, 1] },
   ],
+
+  // The "Beat MegaMuffin" bar: four equal parts, each 0..1. It's full when the
+  // bakery has sold a million brownies, has 5 stars, and owns every recipe and
+  // every one-time upgrade.
+  MEGA_SOLD: 1e6,
+
+  // The Trash Man takes every brownie in the tray for a tenth of what it would
+  // sell for. He charges 100 brownies (stale ones first) and comes once a minute.
+  TRASH_FEE: 100,
+  TRASH_SHARE: 0.1,
+  TRASH_COOLDOWN: 600,
+  REBIRTH_BOOST: 1.5, // per rebirth, stacking: customers and brownies
   // The first 19 goals of v1, in order: a v1 save's goal index means these are done.
   V1_GOALS: ['bake25', 'coffee', 'sell50', 'sweep', 'pet', 'golden', 'dave', 'star1', 'blondie', 'sign', 'sell1k',
     'linda', 'star2', 'mint', 'sell10k', 'star3', 'pb', 'star5', 'goldrecipe'],
   ALL_GOALS_DONE: "All goals done. You're a master baker!",
+  ALL_GOALS_REBIRTH: 'You beat MegaMuffin! Keep baking, or tap the bar to rebirth.',
 };

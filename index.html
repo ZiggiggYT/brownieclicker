@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=1.1.0">
+  <link rel="stylesheet" href="css/style.css?v=1.2.0">
 </head>
 
 <body>
@@ -31,6 +31,13 @@
           <button class="btn small" id="menuBtn">MENU</button>
         </div>
       </header>
+
+      <button id="megaBar" class="px-panel" title="Beat MegaMuffin">
+        <span class="ico" data-sprite="icon_muffin" data-scale="2"></span>
+        <span class="mega-track"><i></i><span class="mega-words">BEAT MEGAMUFFIN</span></span>
+        <span class="mega-pct" id="megaPct">0%</span>
+        <span id="rebirthBadge" hidden><span class="ico" data-sprite="icon_crown" data-scale="2"></span><b id="rebirthCount">1</b></span>
+      </button>
 
       <div id="sceneWrap" class="px-frame">
         <canvas id="scene" width="876" height="552"></canvas>
@@ -65,6 +72,13 @@
             <button class="btn" id="giveBtn" disabled>GIVE</button>
           </div>
         </div>
+        <div class="card px-panel" id="trashCard">
+          <div class="card-head">TRASH MAN</div>
+          <div class="card-body trash">
+            <p id="trashText">Takes ALL your brownies for 1/10 of the price. Fee: 100 brownies.</p>
+            <button class="btn" id="trashBtn" disabled>DUMP ALL</button>
+          </div>
+        </div>
       </section>
 
       <aside id="shop" class="px-panel">
@@ -74,7 +88,7 @@
           <button class="tab" data-tab="recipes">RECIPES</button>
           <button class="tab" data-tab="fixes">FIX UP</button>
         </nav>
-        <p id="hint" hidden>Your tray is overflowing! More bakers won't help now. Get more customers or Delivery Bikes.</p>
+        <p id="hint" hidden>Your tray is overflowing! More bakers won't help now. Get more customers, Delivery Bikes, or call the Trash Man.</p>
         <div id="rows"></div>
         <p id="stats"></p>
       </aside>
@@ -111,15 +125,15 @@
     <div id="loading">LOADING...</div>
   </div>
 
-  <script src="js/version.js?v=1.1.0"></script>
-  <script src="js/atlas.js?v=1.1.0"></script>
-  <script src="js/data.js?v=1.1.0"></script>
-  <script src="js/sim.js?v=1.1.0"></script>
-  <script src="js/audio.js?v=1.1.0"></script>
-  <script src="js/render.js?v=1.1.0"></script>
-  <script src="js/ui.js?v=1.1.0"></script>
-  <script src="js/intro.js?v=1.1.0"></script>
-  <script src="js/main.js?v=1.1.0"></script>
+  <script src="js/version.js?v=1.2.0"></script>
+  <script src="js/atlas.js?v=1.2.0"></script>
+  <script src="js/data.js?v=1.2.0"></script>
+  <script src="js/sim.js?v=1.2.0"></script>
+  <script src="js/audio.js?v=1.2.0"></script>
+  <script src="js/render.js?v=1.2.0"></script>
+  <script src="js/ui.js?v=1.2.0"></script>
+  <script src="js/intro.js?v=1.2.0"></script>
+  <script src="js/main.js?v=1.2.0"></script>
 </body>
 
 </html>

@@ -49,7 +49,7 @@ come from the network first; the cache is only a fallback when offline.
 | `js/main.js` | Real-time loop, input, autosave (`localStorage`, every 5 s and on `pagehide`), and catching up time away (up to one hour). |
 | `js/render.js` | Draws the bakery on a canvas from the sprite sheet, 3x, no smoothing. |
 | `js/ui.js` | Top bar, shop panel, goal and order cards, banners, popups. |
-| `js/intro.js` | The story intro. |
+| `js/intro.js` | Story cutscenes: the intro and the MegaMuffin ending. |
 | `js/audio.js` | Retro WebAudio beeps (sound is off by default). |
 | `js/version.js` | The release version (see above). |
 | `sw.js` | Service worker for offline play and updates. |
@@ -84,8 +84,20 @@ from disk, where browsers won't `fetch()` a JSON file.
 
 Fonts are Press Start 2P and VT323 from Google Fonts, with a monospace fallback when offline.
 
+## Beating MegaMuffin
+
+The tall bar on the left fills as the bakery grows. It has four equal parts: brownies sold
+(a million fills it, on a log scale so it moves early), stars, recipes unlocked, and one-time
+upgrades bought. When it's full, tap it to watch the ending. Then choose:
+
+- **Rebirth:** start over at Day 1 with x1.5 customers and brownies. It stacks (x2.25, x3.4...),
+  and the crown under the bar shows how many rebirths you've done.
+- **Keep this bakery:** carry on as normal. You can still rebirth later from the bar.
+
+Workers are limited by kitchen size (10 of each). Back Room, Second Floor and Brownie Factory in
+FIX UP raise the limit and unlock the Brownie Robot, the Food Truck and the last recipes.
+
 ## Ideas for later
 
-The MegaMuffin rival storyline, your old boss visiting, seasonal events (Halloween!),
-achievements, and more recipes. New helpers, upgrades, recipes, orders and goals only need entries
+Your old boss visiting the bakery, seasonal events (Halloween!), achievements, and more recipes. New helpers, upgrades, recipes, orders and goals only need entries
 in `js/data.js`. Goals are saved by id, so new ones can go anywhere in the list.

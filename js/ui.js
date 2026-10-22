@@ -62,14 +62,20 @@
       const rows = [];
       D.helpers.forEach(h => {
         const n = s.helpers[h.id];
-        const owned = !h.repeat && n > 0;
-        const price = BB.helperPrice(s, h);
+        const block = BB.helperBlock(s, h);
         const ups = h.upgrades || [];
+        const shown = {
+          after: ['NEEDS ' + String(BB.fixName(h.after)).toUpperCase(), 'dim locked'],
+          hired: ['HIRED', 'owned'],
+          full: ['KITCHEN FULL! EXPAND IN FIX UP', 'dim locked'],
+          coins: [priceHTML(BB.helperPrice(s, h)), 'dim'],
+          '': [priceHTML(BB.helperPrice(s, h)), ''],
+        }[block];
         rows.push({
           key: 'helper:' + h.id, icon: h.icon, name: h.name, line: h.line,
-          count: h.repeat && n ? 'x' + n : '',
-          price: owned ? 'HIRED' : priceHTML(price),
-          cls: owned ? 'owned' : s.coins < price ? 'dim' : '',
+          count: h.repeat && n ? 'x' + n + (block === 'full' ? ' MAX' : '') : '',
+          price: shown[0],
+          cls: shown[1],
           badges: ups.filter(u => s.ups[u.id]).map(u => u.icon),
         });
         if (!n) return; // upgrades appear once you own the worker
@@ -123,6 +129,9 @@
         cls = s.recipe === r.id ? 'current' : 'owned';
       } else if (!starsOk) {
         price = 'NEEDS ' + r.stars + ' STAR' + (r.stars > 1 ? 'S' : '');
+        cls = 'dim locked';
+      } else if (r.after && !s.fix[r.after]) {
+        price = 'NEEDS ' + String(BB.fixName(r.after)).toUpperCase();
         cls = 'dim locked';
       } else {
         price = priceHTML(r.cost);
@@ -254,8 +263,10 @@
         BB.audio.play('click');
       }));
       $('giveBtn').addEventListener('click', () => h.give());
+      $('trashBtn').addEventListener('click', () => h.trash());
       $('startNow').addEventListener('click', () => h.startDay());
       $('menuBtn').addEventListener('click', () => h.menu());
+      $('megaBar').addEventListener('click', () => h.mega());
       $('soundBtn').addEventListener('click', () => BB.audio.toggle());
     },
 
@@ -280,6 +291,23 @@
       const parts = ['BAKING ' + rate(BB.bakeRate(s)) + '/s'];
       if (BB.deliverRate(s)) parts.push('DELIVERING ' + rate(BB.deliverRate(s)) + '/s');
       if (visits > 1) parts.push('VISITS x' + (Math.round(visits * 10) / 10));
+      if (s.rebirths) parts.push('REBIRTH BOOST x' + (Math.round(BB.boost(s) * 100) / 100));
+
+      // the Beat MegaMuffin bar
+      const mega = BB.megaProgress(s);
+      const pct = Math.floor(mega * 100);
+      if (last.mega !== pct) {
+        last.mega = pct;
+        $('megaBar').querySelector('.mega-track i').style.height = pct + '%';
+        $('megaPct').textContent = pct + '%';
+        $('megaBar').classList.toggle('full', mega >= 1 && !s.beaten);
+      }
+      if (last.rebirths !== s.rebirths) {
+        last.rebirths = s.rebirths;
+        $('rebirthBadge').hidden = !s.rebirths;
+        $('rebirthCount').textContent = s.rebirths;
+        $('rebirthBadge').title = s.rebirths + (s.rebirths === 1 ? ' rebirth' : ' rebirths') + ': x' + BB.boost(s) + ' customers and brownies';
+      }
       setText($('stats'), 'stats', parts.join('  ·  '));
 
       // goal
@@ -291,11 +319,11 @@
         if (last.goalPct !== pct) { last.goalPct = pct; $('goalBar').firstChild.style.width = pct + '%'; }
         if (last.goalReward !== g.reward) {
           last.goalReward = g.reward;
-          $('goalReward').innerHTML = 'REWARD ' + priceHTML(g.reward);
+          $('goalReward').innerHTML = g.reward ? 'REWARD ' + priceHTML(g.reward) : 'REWARD: THE ENDING!';
           fillIcons($('goalReward'));
         }
       } else {
-        setText($('goalText'), 'goalText', D.ALL_GOALS_DONE);
+        setText($('goalText'), 'goalText', s.beaten ? D.ALL_GOALS_REBIRTH : D.ALL_GOALS_DONE);
         $('goalBar').firstChild.style.width = '100%';
         $('goalReward').hidden = true;
       }
@@ -321,6 +349,15 @@
         setText($('giveBtn'), 'give', 'GIVE');
         $('giveBtn').disabled = true;
       }
+
+      // the Trash Man
+      let trashLabel;
+      if (s.trashCd > 0) trashLabel = 'BACK IN ' + Math.ceil(s.trashCd / 10) + 's';
+      else if (BB.stock(s) <= D.TRASH_FEE) trashLabel = 'NEED 101+';
+      else trashLabel = 'DUMP ALL +$' + BB.fmt(BB.trashValue(s));
+      setText($('trashBtn'), 'trash', trashLabel);
+      const canTrash = s.trashCd <= 0 && BB.stock(s) > D.TRASH_FEE;
+      if ($('trashBtn').disabled === canTrash) $('trashBtn').disabled = !canTrash;
 
       // end of day card
       $('dayCard').hidden = s.open;
@@ -361,6 +398,12 @@
         case 'bonus':
           this.banner('GOLDEN BONUS! +$' + BB.fmt(e.amt), '', true);
           break;
+        case 'trash':
+          this.banner('TRASH MAN TOOK ' + BB.fmt(e.n) + '! +$' + BB.fmt(e.amt), 'cream');
+          break;
+        case 'megaFull':
+          this.banner('MEGAMUFFIN IS DONE FOR! TAP THE BAR!', '', true);
+          break;
         case 'lunch':
           this.banner('LUNCH RUSH!', 'pink');
           break;
@@ -394,11 +437,15 @@
       $('modalBody').hidden = !body;
       const box = $('modalButtons');
       box.textContent = '';
+      const openedAt = performance.now();
       buttons.forEach(b => {
         const el = document.createElement('button');
         el.className = 'btn' + (b.alt ? ' alt' : '');
         el.textContent = b.label;
+        if (b.focus) el.dataset.focus = '1';
         el.addEventListener('click', () => {
+          // ignore taps and key presses that were meant for whatever was on screen just before
+          if (performance.now() - openedAt < 600) return;
           BB.audio.play('click');
           if (!b.keepOpen) BB.ui.closeModal();
           b.onClick && b.onClick();
@@ -406,7 +453,7 @@
         box.appendChild(el);
       });
       $('modal').hidden = false;
-      const first = box.querySelector('.btn');
+      const first = box.querySelector('[data-focus]') || box.querySelector('.btn');
       if (first) first.focus();
     },
 

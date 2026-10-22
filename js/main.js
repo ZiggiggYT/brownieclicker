@@ -104,7 +104,7 @@
     const map = {
       bake: 'bake', sale: 'coin', buy: 'buy', goal: 'buy', rush: 'golden', bonus: 'golden', meow: 'meow',
       orderNew: 'bell', orderDone: 'coin', aww: 'sad', dayEnd: 'jingle', dayStart: 'bell', goldenIn: 'bell',
-      lunch: 'jingle', parade: 'golden',
+      lunch: 'jingle', parade: 'golden', megaFull: 'fanfare', trash: 'trash',
     };
     if (map[e.k]) BB.audio.play(map[e.k]);
   }
@@ -154,8 +154,59 @@
     BB.ui.modal('MENU', '', [
       { label: 'BACK TO BAKING' },
       { label: 'REPLAY THE STORY', alt: true, onClick: () => playIntro(false) },
+      ...(G.s.beaten ? [{ label: 'REPLAY THE ENDING', alt: true, onClick: () => { G.playing = false; $('game').hidden = true; BB.intro.start(showGame, 'ending'); } }] : []),
       { label: 'RESET SAVE', alt: true, onClick: confirmReset },
     ]);
+  }
+
+  // ------------------------------------------------------------ MegaMuffin, ending, rebirth
+  function megaMenu() {
+    const s = G.s;
+    const p = BB.megaParts(s);
+    const pc = v => Math.floor(v * 100) + '%';
+    const body = (s.beaten ? 'You beat MegaMuffin Corp! You can rebirth any time.' : 'Grow your bakery to beat MegaMuffin Corp!') +
+      '\n\nBrownies sold: ' + pc(p.sold) + '\nStars: ' + pc(p.stars) +
+      '\nRecipes: ' + pc(p.recipes) + '\nUpgrades bought: ' + pc(p.upgrades);
+    const buttons = [{ label: 'KEEP BAKING' }];
+    if (BB.megaProgress(s) >= 1 && !s.beaten) buttons.unshift({ label: 'SEE THE ENDING!', onClick: playEnding });
+    if (s.beaten) buttons.push({ label: 'REBIRTH...', alt: true, onClick: confirmRebirth });
+    BB.ui.modal('BEAT MEGAMUFFIN: ' + pc(BB.megaProgress(s)), body, buttons);
+  }
+
+  function playEnding() {
+    G.playing = false;
+    $('game').hidden = true;
+    BB.intro.start(() => {
+      act('beat');
+      showGame();
+      chooseRebirth();
+    }, 'ending');
+  }
+
+  function chooseRebirth() {
+    const next = Math.pow(BB.DATA.REBIRTH_BOOST, G.s.rebirths + 1);
+    BB.ui.modal('YOU BEAT MEGAMUFFIN!', 'Start a brand new bakery with x' + next + ' customers and brownies forever, or keep playing this one?', [
+      { label: 'REBIRTH: x' + next + ' BOOST', onClick: doRebirth },
+      { label: 'KEEP THIS BAKERY', alt: true, focus: true, onClick: () => BB.ui.banner('KEEP ON BAKING!', 'cream') },
+    ]);
+  }
+
+  function confirmRebirth() {
+    const next = Math.pow(BB.DATA.REBIRTH_BOOST, G.s.rebirths + 1);
+    BB.ui.modal('REBIRTH?', 'You start over at Day 1 with a brand new bakery, but customers and brownies are x' + next + ' forever.', [
+      { label: 'NOT YET' },
+      { label: 'YES, REBIRTH!', alt: true, onClick: doRebirth },
+    ]);
+  }
+
+  function doRebirth() {
+    advance();
+    G.s = BB.rebirth(G.s);
+    G.last = Date.now();
+    save();
+    BB.ui.reset();
+    BB.audio.play('fanfare');
+    BB.ui.banner('REBIRTH #' + G.s.rebirths + '! x' + BB.boost(G.s) + ' BOOST', '', true);
   }
 
   function confirmReset() {
@@ -201,8 +252,10 @@
         if (!act(fn, id)) BB.audio.play('click');
       },
       give: () => act('give'),
+      trash: () => act('trash'),
       startDay: () => act('startDay'),
       menu: openMenu,
+      mega: megaMenu,
     });
     BB.intro.init(img);
     $('loading').hidden = true;

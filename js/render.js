@@ -173,11 +173,16 @@
     rect(wx + 8, wy + 30, 8, 8, '#8a3a62');
     rect(wx + 38, wy + 30, 10, 5, '#ffd9ec');
     const blink = Math.floor(T * 2) % 2 === 0;
-    // the sign is split across the two panes so the window bar doesn't hide it
+    // the sign is split across the two panes so the window bar doesn't hide it,
+    // and it falls apart as you get closer to beating MegaMuffin
+    const mega = s.beaten ? 1 : BB.megaProgress(s);
+    const words = mega >= 1 ? ['CLO', 'SED'] : mega >= 0.85 ? ['M  A', 'M F  N'] : mega >= 0.6 ? ['MEGA', 'M FF N'] : ['MEGA', 'MUFFIN'];
     rect(wx + 5, wy + 22, 20, 5, '#5a1e3e');
     rect(wx + 31, wy + 22, 20, 5, '#5a1e3e');
-    text('MEGA', wx + 15, wy + 24.6, { size: 8, color: blink ? COL.pinkHi : '#ffffff', shadow: false });
-    text('MUFFIN', wx + 41, wy + 24.6, { size: 8, color: blink ? COL.pinkHi : '#ffffff', shadow: false });
+    const signCol = mega >= 1 ? '#c9a98a' : mega >= 0.6 && Math.floor(T * 7) % 5 === 0 ? '#5a1e3e' : blink ? COL.pinkHi : '#ffffff';
+    text(words[0], wx + 15, wy + 24.6, { size: 8, color: signCol, shadow: false });
+    text(words[1], wx + 41, wy + 24.6, { size: 8, color: signCol, shadow: false });
+    if (mega >= 1) { rect(wx + 6, wy + 29, 18, 2, '#8a5a3e'); rect(wx + 32, wy + 31, 18, 2, '#8a5a3e'); } // boarded up
     // delivery bikes ride past on the street, more often the more bikes you have
     const bikes = s.helpers.bike;
     if (bikes && s.open) {
@@ -194,6 +199,15 @@
       rect(bx + 4, by - 5, 3, 1, '#4a8a4a');
       rect(bx, by + 1, 3, 3, s.ups.basket ? '#c9945a' : '#a8743f');
     }
+    if (s.helpers.truck && s.open) { // the brownie food truck drives the other way
+      const bt = ((T + 4) % 11) / 11;
+      const tx = Math.round(wx - 22 + bt * 80);
+      const ty = wy + 27;
+      rect(tx, ty, 16, 9, '#8a5a3e'); rect(tx + 16, ty + 3, 5, 6, '#8a5a3e'); rect(tx + 17, ty + 4, 3, 2, '#8fc4e8');
+      rect(tx + 2, ty + 2, 11, 4, COL.cream); rect(tx + 4, ty + 3, 7, 2, '#5a3020');
+      rect(tx + 2, ty + 9, 3, 2, '#2a2a2a'); rect(tx + 15, ty + 9, 3, 2, '#2a2a2a');
+      if (s.ups.song && Math.floor(T * 2) % 2) rect(tx + 8, ty - 3, 1, 2, COL.gold);
+    }
     if (phase === 'night' || phase === 'dusk') rect(wx + 4, wy + 4, 48, 34, 'rgba(10,10,40,0.35)');
     ctx.restore();
     if (s.cust.window) {
@@ -209,6 +223,24 @@
 
   // Things pinned to the walls by customer upgrades.
   function drawWallExtras(s, T) {
+    if (s.fix.neon) {
+      const on = Math.floor(T * 5) % 23 !== 0; // a flicker now and then
+      rect(206, 74, 46, 12, COL.ink);
+      rect(207, 75, 44, 10, '#2a1a2a');
+      text('BROWNIES', 229, 80.3, { size: 8, color: on ? COL.pinkHi : '#7a4a6a', shadow: false });
+    }
+    if (s.fix.frame) { // Golden Grandma: a glowing gold frame around her portrait
+      rect(63, 33, 28, 32, COL.gold);
+      rect(64, 34, 26, 30, '#fff1b8');
+      const k = Math.floor(T * 3) % 4;
+      rect(62 + (k % 2) * 28, 32 + Math.floor(k / 2) * 32, 2, 2, '#ffffff');
+    }
+    const size = s.fix.factory ? 'BROWNIE FACTORY' : s.fix.upstairs ? '+ SECOND FLOOR' : s.fix.backroom ? '+ BACK ROOM' : '';
+    if (size) {
+      rect(168, 23, 48, 7, COL.ink);
+      rect(169, 24, 46, 5, '#3a2418');
+      text(size, 192, 26.6, { size: 6, color: COL.gold, shadow: false });
+    }
     if (s.cust.news) {
       spr('icon_news', 40, 42);
       text('#1 BROWNIES', 49, 63, { size: 6, color: COL.cream });
@@ -335,7 +367,14 @@
     text(s.open ? 'OPEN' : 'CLOSED', 270, 115.3, { size: s.open ? 9 : 7, color: s.open ? '#2a7a2a' : '#b33a3a', shadow: false });
   }
 
-  function drawFloor() {
+  function drawFloor(s) {
+    if (s.fix.floor) {
+      for (let y = FLOOR, r = 0; y < H; y += 6, r++) {
+        for (let x = 0, c = 0; x < W; x += 12, c++) rect(x, y, 12, 6, (r + c) % 2 ? COL.cream : '#5a3324');
+      }
+      rect(0, FLOOR, W, 2, COL.ink);
+      return;
+    }
     rect(0, FLOOR, W, H - FLOOR, '#6b4a32');
     for (let y = FLOOR, row = 0; y < H; y += 6, row++) {
       rect(0, y, W, 1, '#4e3424');
@@ -355,8 +394,14 @@
     rect(14, 158, 32, 4, '#a8743f'); rect(14, 161, 32, 1, '#7a5030');
     rect(17, 162, 3, 15, '#7a5030'); rect(40, 162, 3, 15, '#7a5030');
     rect(13, 157, 34, 1, COL.ink);
-    rect(24, 156, 12, 2, '#f0e2c8');
-    mini(27, 152, r.top, r.base);
+    if (s.fix.fountain) { // a chocolate fountain on the table
+      spr('icon_fountain', 21, 140);
+      const d = Math.floor(vis.lastNow / 150) % 3;
+      rect(25, 147 + d, 1, 1, '#5a3020'); rect(34, 148 + ((d + 1) % 3), 1, 1, '#5a3020');
+    } else {
+      rect(24, 156, 12, 2, '#f0e2c8');
+      mini(27, 152, r.top, r.base);
+    }
   }
 
   function mini(x, y, top, base) {
@@ -526,6 +571,11 @@
     const items = s.customers.map(c => [c.y, customerDrawer(s, c, now, step)]);
     vis.daves.forEach((d, i) => items.push([178 - i, daveDrawer(s, d, i, T)]));
     items.push([182, () => drawCat(now, T, dt)]);
+    // Brownie Robots (up to 2) roll around by the oven
+    for (let i = 0; i < Math.min(2, s.helpers.robot); i++) {
+      const rx = 30 + i * 26 + Math.round(Math.sin(T * 0.8 + i * 2) * 6);
+      items.push([163 + i * 4, () => spr(Math.floor(T * 2 + i) % 2 ? 'robot2' : 'robot1', rx, 131 + i * 4)]);
+    }
     items.sort((a, b) => a[0] - b[0]).forEach(([, fn]) => fn());
   }
 
@@ -653,12 +703,12 @@
       drawWall(s);
       drawWindow(s, T);
       drawSign(s, T);
+      drawWallExtras(s, T);
       spr('grandma_portrait', 66, 36);
       drawChalkboard(s);
-      drawWallExtras(s, T);
       drawOven(s, T);
       drawDoor(s);
-      drawFloor();
+      drawFloor(s);
       drawTable(s);
       drawCounter(s, now);
       drawLine(s);
@@ -730,6 +780,10 @@
             floatText('+$' + BB.fmt(e.tip) + ' TIP', P(170), P(100), COL.gold, 12);
             burst(P(170), P(106), 5, [COL.gold, '#fff1b8'], { speed: 80, up: 120, size: 6 });
           }
+          break;
+        case 'trash': // the tray empties into a cloud of crumbs
+          burst(P(146), P(110), 30, ['#7e7468', '#a59a8a', '#5a3020', '#3a1c12'], { speed: 220, up: 160, size: 6, life: 0.9 });
+          floatText('+$' + BB.fmt(e.amt), P(146), P(96), COL.gold, 16);
           break;
         case 'deliver':
           floatText('+$' + BB.fmt(e.amt), P(178), P(30), '#8fe0b0', 14);
