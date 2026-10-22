@@ -244,17 +244,9 @@
   img.src = 'assets/spritesheet.png?v=' + BB.VERSION;
 
   // Offline support once the game has been loaded from a web server (e.g. GitHub Pages).
-  // The version in the URL names the cache, so each release installs a fresh worker.
+  // The version in the URL names the cache, so each release installs a fresh worker
+  // (which reloads open tabs when it takes over; see sw.js).
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    const hadWorker = !!navigator.serviceWorker.controller;
-    let reloading = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      // A new release took over this open tab: save and reload once so it runs the new code.
-      if (!hadWorker || reloading) return;
-      reloading = true;
-      save();
-      location.reload();
-    });
     navigator.serviceWorker.register('sw.js?v=' + BB.VERSION).then(reg => {
       // Tabs left open all day at school still pick up a new release within the hour.
       setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);

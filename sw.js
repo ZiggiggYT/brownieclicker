@@ -20,10 +20,17 @@ self.addEventListener('install', e => {
     .then(() => self.skipWaiting()));
 });
 
+// On an update (an older cache exists), reload open tabs so they run the new
+// release right away. The game saves on pagehide, so no progress is lost.
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+  e.waitUntil((async () => {
+    const old = (await caches.keys()).filter(k => k !== CACHE);
+    await Promise.all(old.map(k => caches.delete(k)));
+    await self.clients.claim();
+    if (!old.length) return; // first install: nothing to refresh
+    const tabs = await self.clients.matchAll({ type: 'window' });
+    tabs.forEach(t => t.navigate(t.url).catch(() => {}));
+  })());
 });
 
 self.addEventListener('fetch', e => {
