@@ -85,10 +85,51 @@ const v1 = { v: 1, seed: 5, t: 9000, coins: 1234, fresh: 40, stale: 3, bakeAcc: 
   customers: [{ id: 9, look: 'mo', x: 218, st: 'wait', t: 0, want: 2, mood: null }], cid: 9, order: null, orderIdx: 3,
   orderCd: 100, golden: null, goldenCd: 300, rush: 0, goal: 13, flags: { pet: true, golden: true }, fx: [] };
 const m = BB.migrate(JSON.parse(JSON.stringify(v1)));
-check(m.v === 2 && m.coins === 1234 && m.helpers.dave === 2 && m.helpers.bike === 0 && m.recipe === 'blondie', 'v1 save keeps coins, helpers and recipe');
+check(m.v === 3 && m.rebirths === 0 && !m.beaten && m.coins === 1234 && m.helpers.dave === 2 && m.helpers.bike === 0 && m.recipe === 'blondie', 'v1 save keeps coins, helpers and recipe');
 check(m.goalsDone.mint === undefined && m.goalsDone.star2 && m.goalsDone.linda && Object.keys(m.goalsDone).length === 13, 'v1 goal progress carries over');
 check(m.customers[0].y === 160 && m.goal === undefined, 'v1 customers get a floor position');
 check(BB.simN(m, 3000).coins > 1234, 'migrated save keeps running');
+
+// Kitchen size limits workers; expansions raise it and unlock new workers and recipes.
+s = BB.newState(21); s.coins = 1e12;
+for (let i = 0; i < 12; i++) BB.act.buyHelper(s, 'coffee');
+check(s.helpers.coffee === 10 && BB.helperBlock(s, BB.DATA.helpers[1]) === 'full', 'kitchen holds 10 of a worker');
+check(!BB.act.buyHelper(s, 'robot'), 'Brownie Robot needs the Back Room');
+BB.act.buyFix(s, 'backroom');
+check(BB.act.buyHelper(s, 'coffee') && BB.act.buyHelper(s, 'robot'), 'Back Room makes room and unlocks robots');
+s.stars = 5;
+check(!BB.act.unlockRecipe(s, 'smores'), "S'mores needs the Second Floor");
+BB.act.buyFix(s, 'upstairs');
+check(BB.act.unlockRecipe(s, 'smores'), "Second Floor unlocks S'mores");
+
+// The MegaMuffin bar is only full when everything is done.
+s = BB.newState(22);
+check(BB.megaProgress(s) === 0, 'bar starts empty');
+s.totalSold = 1e6; s.stars = 5;
+BB.DATA.recipes.forEach(r => { s.recipes[r.id] = true; });
+BB.DATA.customerUps.forEach(u => { s.cust[u.id] = true; });
+BB.DATA.fixes.forEach(f => { s.fix[f.id] = true; });
+check(BB.megaProgress(s) < 1, 'bar not full while worker upgrades are missing (' + BB.megaProgress(s).toFixed(3) + ')');
+BB.DATA.helpers.forEach(h => (h.upgrades || []).forEach(u => { s.ups[u.id] = true; }));
+check(BB.megaProgress(s) === 1, 'bar full when everything is done');
+s = BB.simN(s, 60);
+check(s.flags.megaFull && s.fx.some(e => e.k === 'megaFull'), 'filling the bar announces the ending');
+
+// Rebirth: start over with a stacking 1.5x boost.
+s.coins = 5e6; s.helpers.dave = 4;
+BB.act.beat(s);
+const r1 = BB.rebirth(s);
+check(r1.rebirths === 1 && r1.coins === 0 && r1.helpers.dave === 0 && !r1.beaten && r1.day === 1, 'rebirth starts a fresh bakery');
+const r2 = BB.rebirth(r1);
+check(BB.boost(r2) === 2.25, 'rebirth boost stacks (x2.25 after two)');
+r2.helpers.dave = 2;
+check(BB.bakeRate(r2) === 2 * 2.25 && Math.abs(BB.spawnChance(r2) / BB.spawnChance(Object.assign({}, r2, { rebirths: 0 })) - 2.25) < 1e-9, 'boost multiplies baking and customers');
+
+// A 1.1 (v2) save loads as v3.
+const v2 = Object.assign(BB.newState(23), { v: 2 }); delete v2.rebirths; delete v2.beaten; delete v2.helpers.robot; delete v2.helpers.truck;
+v2.coins = 777; v2.helpers.dave = 14;
+const m2 = BB.migrate(JSON.parse(JSON.stringify(v2)));
+check(m2.v === 3 && m2.coins === 777 && m2.helpers.dave === 14 && m2.helpers.robot === 0 && m2.rebirths === 0, 'v2 save migrates (and keeps 14 Daves over the new limit)');
 
 // Speed of a full hour catch-up.
 const t0 = Date.now(); BB.simN(BB.newState(9), 36000);

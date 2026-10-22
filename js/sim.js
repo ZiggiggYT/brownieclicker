@@ -10,7 +10,7 @@
 // renderer and UI drain each frame.
 (function () {
   const D = BB.DATA;
-  const STATE_VERSION = 2;
+  const STATE_VERSION = 3;
 
   // Queue spots in scene pixels, front first: three along the counter, then the
   // line bends forward when Bigger Line upgrades make room for more.
@@ -80,6 +80,8 @@
       parade: 0,
       goalsDone: {},
       flags: {},
+      rebirths: 0,   // times you started over after beating MegaMuffin
+      beaten: false, // beat MegaMuffin in this bakery
       fx: [],
     };
     D.helpers.forEach(h => { s.helpers[h.id] = 0; });
@@ -105,8 +107,17 @@
       // v1 customers only walked left and right.
       s.customers.forEach(c => { c.y = c.st === 'out' ? EXIT_Y : DOOR[1]; });
     }
+    // v2 -> v3 only added fields (rebirths, beaten, new workers), which the merge fills in.
     s.v = STATE_VERSION;
     s.fx = [];
+    return s;
+  };
+
+  // Start over after beating MegaMuffin, one rebirth stronger.
+  BB.rebirth = function (old) {
+    const s = BB.newState(old.seed);
+    s.rebirths = (old.rebirths || 0) + 1;
+    s.flags.pet = !!old.flags.pet; // Fudge remembers you
     return s;
   };
 
@@ -122,24 +133,66 @@
   BB.mult = s => (s.rush > 0 ? 3 : 1);
   // Product of the owned upgrade multipliers for one worker.
   BB.upMult = (s, id) => (helper(id).upgrades || []).reduce((m, u) => (s.ups[u.id] && u.mult ? m * u.mult : m), 1);
-  BB.perClick = s => (1 + s.helpers.nap) * BB.upMult(s, 'nap') * BB.mult(s);
-  BB.helperRate = (s, h) => (h.rate || 0) * s.helpers[h.id] * BB.upMult(s, h.id);
+  // Each rebirth multiplies brownies and customers by 1.5 (stacking).
+  BB.boost = s => Math.pow(D.REBIRTH_BOOST, s.rebirths || 0);
+  const fixMult = (s, key) => D.fixes.reduce((m, f) => (s.fix[f.id] && f[key] ? m * f[key] : m), 1);
+  BB.perClick = s => Math.round((1 + s.helpers.nap) * BB.upMult(s, 'nap') * BB.mult(s) * BB.boost(s));
+  BB.helperRate = (s, h) => (h.rate || 0) * s.helpers[h.id] * BB.upMult(s, h.id) * fixMult(s, 'bake') * BB.boost(s);
   BB.baseBakeRate = s => D.helpers.reduce((sum, h) => sum + BB.helperRate(s, h), 0);
   BB.bakeRate = s => BB.baseBakeRate(s) * BB.mult(s);
   BB.deliverRate = s => D.helpers.reduce((sum, h) => sum + (h.sells || 0) * s.helpers[h.id] * BB.upMult(s, h.id), 0);
   BB.helperPrice = (s, h) => (h.repeat ? Math.ceil(h.price * Math.pow(D.PRICE_GROWTH, s.helpers[h.id])) : h.price);
+  // Kitchen size: how many of each repeatable worker you can have.
+  BB.helperCap = s => D.fixes.reduce((n, f) => (s.fix[f.id] && f.cap ? Math.max(n, f.cap) : n), D.HELPER_CAP);
+  BB.fixName = id => (D.fixes.find(f => f.id === id) || {}).name;
+  // Why a worker can't be bought right now: '', 'after' (needs an expansion), 'full', 'hired' or 'coins'.
+  BB.helperBlock = (s, h) => {
+    if (h.after && !s.fix[h.after]) return 'after';
+    if (!h.repeat && s.helpers[h.id] > 0) return 'hired';
+    if (h.repeat && s.helpers[h.id] >= BB.helperCap(s)) return 'full';
+    if (s.coins < BB.helperPrice(s, h)) return 'coins';
+    return '';
+  };
   BB.queueSize = s => D.customerUps.reduce((n, u) => (s.cust[u.id] && u.queue ? Math.max(n, u.queue) : n), 3);
-  BB.visits = s => D.customerUps.reduce((v, u) => (s.cust[u.id] && u.visits ? v + u.visits : v), 1);
+  BB.visits = s => D.customerUps.reduce((v, u) => (s.cust[u.id] && u.visits ? v + u.visits : v), 1) +
+    D.fixes.reduce((v, f) => (s.fix[f.id] && f.visits ? v + f.visits : v), 0);
+  BB.extraPerVisit = s => D.customerUps.reduce((n, u) => (s.cust[u.id] && u.extra ? n + u.extra : n), 0);
+  BB.tipChance = s => (s.cust.tipjar ? D.customerUps.reduce((c, u) => (s.cust[u.id] && u.tipChance ? Math.max(c, u.tipChance) : c), D.TIP_CHANCE) : 0);
   BB.lunchRush = s => !!(s.cust.rush && s.open && BB.dayFrac(s) >= D.LUNCH[0] && BB.dayFrac(s) < D.LUNCH[1]);
-  BB.spawnChance = s => Math.min(0.3,
+  BB.spawnChance = s => Math.min(0.45,
     (0.01 + s.stars * 0.003 + (s.fix.sign ? 0.004 : 0) + (s.fix.tables ? 0.006 : 0)) *
-    BB.visits(s) * (BB.lunchRush(s) ? 3 : 1) * (s.parade > 0 ? 4 : 1));
+    BB.visits(s) * (BB.lunchRush(s) ? 3 : 1) * (s.parade > 0 ? 4 : 1) * BB.boost(s));
   // The tray holds more than a few minutes of sales: more bakers won't help, more customers will.
   BB.overflowing = s => BB.stock(s) > 300 && BB.stock(s) > BB.baseBakeRate(s) * 120;
   BB.waitTicks = s => (s.ups.register ? 1 : s.helpers.linda ? 4 : 12);
   BB.dayFrac = s => (s.open ? s.dayT / D.DAY_TICKS : 1);
   BB.orderReward = s => (s.order ? Math.round(s.order.qty * BB.recipe(s).price * 1.5) : 0);
   BB.currentGoal = s => D.goals.find(g => !s.goalsDone[g.id]) || null;
+
+  // ------------------------------------------------------------ the MegaMuffin bar
+  const oneTimeUps = () => {
+    const ids = [];
+    D.helpers.forEach(h => (h.upgrades || []).forEach(u => ids.push(['ups', u.id])));
+    D.customerUps.forEach(u => ids.push(['cust', u.id]));
+    D.fixes.forEach(f => ids.push(['fix', f.id]));
+    return ids;
+  };
+  // Four equal parts, each 0..1: brownies sold (on a log scale so it moves early on),
+  // stars, recipes unlocked, and one-time upgrades bought.
+  BB.megaParts = s => {
+    const ups = oneTimeUps();
+    return {
+      sold: Math.min(1, Math.log10(1 + s.totalSold) / Math.log10(1 + D.MEGA_SOLD)),
+      stars: Math.min(1, Math.max(0, (s.stars - D.START_STARS) / (D.MAX_STARS - D.START_STARS))),
+      recipes: (D.recipes.filter(r => s.recipes[r.id]).length - 1) / (D.recipes.length - 1),
+      upgrades: ups.filter(([k, id]) => s[k][id]).length / ups.length,
+    };
+  };
+  BB.megaProgress = s => {
+    const p = BB.megaParts(s);
+    const avg = (p.sold + p.stars + p.recipes + p.upgrades) / 4;
+    return avg > 0.9999 ? 1 : Math.min(0.999, avg); // only "full" when every part is full
+  };
 
   // Stars from customers and orders get harder to earn the more you have, so the
   // later recipes (which need stars) take a few school days, not one afternoon.
@@ -221,6 +274,10 @@
     stepOrder(s);
     stepGolden(s);
     checkGoal(s);
+    if (!s.flags.megaFull && s.t % 50 === 0 && BB.megaProgress(s) >= 1) {
+      s.flags.megaFull = true;
+      emit(s, { k: 'megaFull' });
+    }
     return s;
   }
 
@@ -277,7 +334,7 @@
       let box = false;
       want += Math.floor(s.stars / 2); // a famous bakery sells more per visit
       if (s.cust.party && rand(s) < D.PARTY_CHANCE) { want = 6; box = true; }
-      if (s.cust.samples) want += 1;
+      want += BB.extraPerVisit(s);
       if (s.ups.smile && rand(s) < 0.3) want += 1;
       s.customers.push({
         id: ++s.cid,
@@ -329,7 +386,7 @@
   function sell(s, c) {
     const [n, amt, fresh] = sellFromTray(s, c.want);
     let tip = 0;
-    if (s.cust.tipjar && rand(s) < D.TIP_CHANCE) {
+    if (s.cust.tipjar && rand(s) < BB.tipChance(s)) {
       tip = Math.max(1, Math.round(amt * 0.5));
       earn(s, tip);
       s.dayTips++;
@@ -364,7 +421,7 @@
       if (--s.golden.t <= 0) s.golden = null;
     } else if (s.open && --s.goldenCd <= 0) {
       s.golden = { x: 20 + Math.floor(rand(s) * 230), y: 18 + Math.floor(rand(s) * 80), t: D.GOLDEN_LIFE };
-      s.goldenCd = 700 + Math.floor(rand(s) * 400); // ~once every 90 s
+      s.goldenCd = Math.round((700 + Math.floor(rand(s) * 400)) / fixMult(s, 'golden')); // ~once every 90 s
       emit(s, { k: 'goldenIn' });
     }
   }
@@ -419,9 +476,8 @@
 
     buyHelper(s, id) {
       const h = helper(id);
-      if (!h || (!h.repeat && s.helpers[id] > 0)) return false;
+      if (!h || BB.helperBlock(s, h)) return false;
       const price = BB.helperPrice(s, h);
-      if (s.coins < price) return false;
       s.coins -= price;
       s.helpers[id]++;
       emit(s, { k: 'buy', banner: h.banner });
@@ -469,7 +525,7 @@
         emit(s, { k: 'recipe', id });
         return true;
       }
-      if (s.stars < r.stars || s.coins < r.cost) return false;
+      if (s.stars < r.stars || s.coins < r.cost || (r.after && !s.fix[r.after])) return false;
       s.coins -= r.cost;
       s.recipes[id] = true;
       s.recipe = id;
@@ -512,6 +568,14 @@
         s.parade = D.RUSH_TICKS; // a crowd of customers for 15 s
         emit(s, { k: 'parade', x, y });
       }
+      checkGoal(s);
+      return true;
+    },
+
+    // The ending has been watched: MegaMuffin is beaten in this bakery.
+    beat(s) {
+      if (s.beaten) return false;
+      s.beaten = true;
       checkGoal(s);
       return true;
     },
